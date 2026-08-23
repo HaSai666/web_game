@@ -405,13 +405,28 @@ function viewRecycle(idx) {
   document.getElementById("view").innerHTML = html;
 }
 
+/* ---------- 搜索路由：精确 → 去括号 → 包含匹配 ---------- */
+function findRoute(q) {
+  if (BBS.routes[q]) return BBS.routes[q];
+  var norm = q.replace(/[「」『』《》〈〉""''【】\s]/g, "");
+  if (BBS.routes[norm]) return BBS.routes[norm];
+  if (norm.length >= 2) {
+    for (var k in BBS.routes) {
+      if (k.length >= 2 && (norm.indexOf(k) !== -1 || k.indexOf(norm) !== -1)) {
+        return BBS.routes[k];
+      }
+    }
+  }
+  return null;
+}
+
 /* ---------- 视图·搜索 ---------- */
 function viewSearch(q) {
   q = decodeURIComponent(q || "").replace(/^\s+|\s+$/g, "");
   setTier(getVisited().length >= 20 ? 3 : (getVisited().length >= 8 ? 2 : 1));
   renderChrome("» 搜索");
   if (!q) { document.getElementById("view").innerHTML = '<div class="quote">请输入关键词。</div>'; return; }
-  var r = BBS.routes[q];
+  var r = findRoute(q);
   if (r === "t_37" && !canSee37()) r = null; /* 第37楼对未到时机的人不存在 */
   if (!r) {
     var v = getVisited().length, msg;
