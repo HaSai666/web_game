@@ -64,6 +64,16 @@ function onlineNum() {
   return 4;
 }
 
+/* ---------- 第37楼门禁：读过「第十一法」或集齐36份文档才可见 ---------- */
+function canSee37() {
+  var v = getVisited();
+  if (v.indexOf("t_eleven") !== -1) return true;
+  for (var i = 0; i < BBS.docs.length; i++) {
+    if (v.indexOf(BBS.docs[i]) === -1) return false;
+  }
+  return true;
+}
+
 /* ---------- 渲染·骨架 ---------- */
 function setTier(t) { document.body.className = "t" + (t || 1); }
 function renderChrome(crumbsHtml) {
@@ -74,7 +84,8 @@ function renderChrome(crumbsHtml) {
   var s = session();
   var ub = document.getElementById("userbar");
   if (s) {
-    ub.innerHTML = "您好：<b>" + esc(s) + "</b>　<a href='#/pm'>短消息</a> | <a href='#/recycle'>回收站</a> | <a href='#' id='logout-link'>退出</a>";
+    var recycleLink = (s === "青灯") ? ' | <a href="#/recycle">回收站</a>' : "";
+    ub.innerHTML = "您好：<b>" + esc(s) + "</b>　<a href='#/pm'>短消息</a>" + recycleLink + " | <a href='#' id='logout-link'>退出</a>";
     document.getElementById("logout-link").addEventListener("click", function (e) {
       e.preventDefault();
       localStorage.removeItem("bbs_session");
@@ -217,6 +228,15 @@ function postHtml(p, tier) {
 function viewThread(tid) {
   var t = THREADS[tid];
   if (!t) { viewSearch(""); return; }
+  if (t.id === "t_37" && !canSee37()) {
+    setTier(3);
+    renderChrome("» <a href='#/board/guaitan'>怪谈版</a> » （不存在）");
+    document.getElementById("view").innerHTML =
+      '<div class="thread-head-bar">该楼层不存在</div>' +
+      '<div class="quote">版规第十条：本版块没有第37楼。</div>' +
+      '<p class="stamp">（也许还没有到能看到它的时候。）</p>';
+    return;
+  }
   setTier(t.tier || 1);
   var bname = "怪谈版";
   for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].id === t.board) bname = BOARDS[i].name;
@@ -392,6 +412,7 @@ function viewSearch(q) {
   renderChrome("» 搜索");
   if (!q) { document.getElementById("view").innerHTML = '<div class="quote">请输入关键词。</div>'; return; }
   var r = BBS.routes[q];
+  if (r === "t_37" && !canSee37()) r = null; /* 第37楼对未到时机的人不存在 */
   if (!r) {
     var v = getVisited().length, msg;
     if (v < 8) msg = "<p>没有找到与「" + esc(q) + "」相关的内容。</p><p class='stamp'>请检查关键词，或回到帖子里找别的词。</p>";
