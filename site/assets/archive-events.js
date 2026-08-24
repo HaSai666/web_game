@@ -133,7 +133,10 @@
         }
       }
     }
-    if (changed) write(PM_KEY, map);
+    if (changed) {
+      write(PM_KEY, map);
+      try { window.dispatchEvent(new Event("archivepm")); } catch (e) {}
+    }
   }
   function currentTier() {
     if (window.ArchiveAtmosphereState) return window.ArchiveAtmosphereState.get();
