@@ -10,6 +10,7 @@ function loadUsers(u) {
 }
 loadUsers(window.BBS_STORY && BBS_STORY.users);
 loadUsers(window.BBS_FILLER && BBS_FILLER.users);
+loadUsers(window.BBS_EXPANSION && BBS_EXPANSION.users);
 var THREADS = {};
 function loadThreads(arr) {
   if (!arr) return;
@@ -18,6 +19,7 @@ function loadThreads(arr) {
 loadThreads(BBS.threads);
 loadThreads(window.BBS_STORY && BBS_STORY.threads);
 loadThreads(window.BBS_FILLER && BBS_FILLER.threads);
+loadThreads(window.BBS_EXPANSION && BBS_EXPANSION.threads);
 if (window.BBS_STORY && BBS_STORY.pms) {
   for (var k in BBS_STORY.pms) {
     if (!BBS.pms[k]) BBS.pms[k] = { inbox: [], drafts: [] };
@@ -38,6 +40,31 @@ function markVisited(id) {
 }
 function session() { return localStorage.getItem("bbs_session") || ""; }
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function pmWasRead(id) {
+  try { return JSON.parse(localStorage.getItem("bbs_pm_read") || "[]").indexOf(id) !== -1; }
+  catch (e) { return false; }
+}
+function markPmRead(id) {
+  if (!id) return;
+  var list = [];
+  try { list = JSON.parse(localStorage.getItem("bbs_pm_read") || "[]"); } catch (e) {}
+  if (list.indexOf(id) === -1) list.push(id);
+  try { localStorage.setItem("bbs_pm_read", JSON.stringify(list)); } catch (e2) {}
+}
+function eventPmsFor(name) {
+  var map = {};
+  try { map = JSON.parse(localStorage.getItem("bbs_event_pms") || "{}"); } catch (e) {}
+  return map && Array.isArray(map[name]) ? map[name] : [];
+}
+function pmDataFor(name) {
+  var base = BBS.pms[name] || { inbox: [], drafts: [] };
+  return { inbox: eventPmsFor(name).concat(base.inbox || []), drafts: (base.drafts || []).slice() };
+}
+function pmUnreadCount(name) {
+  var data = pmDataFor(name), n = 0;
+  for (var i = 0; i < data.inbox.length; i++) if (!pmWasRead(data.inbox[i].id)) n++;
+  return n;
+}
 
 /* ---------- 热词 ---------- */
 function hotwords(html) {
@@ -60,7 +87,7 @@ function avatarColor(name) {
 /* ---------- 计数器 ---------- */
 function onlineNum() {
   var v = getVisited();
-  if (v.indexOf("t_eleven") !== -1 || v.indexOf("t_37") !== -1) return 5;
+  if (v.indexOf("t_eleven") !== -1 || v.indexOf("t_37") !== -1 || v.indexOf("f_night_presence") !== -1) return 5;
   return 4;
 }
 
@@ -75,7 +102,18 @@ function canSee37() {
 }
 
 /* ---------- 渲染·骨架 ---------- */
-function setTier(t) { document.body.className = "t" + (t || 1); }
+function setTier(t) {
+  if (window.ArchiveAtmosphereState) {
+    window.ArchiveAtmosphereState.apply(t || 1);
+    return;
+  }
+  /* Fallback for a partially cached page while the shared state script loads. */
+  var current = parseInt(document.body.getAttribute("data-atmosphere-tier") || "1", 10) || 1;
+  var next = Math.max(1, current, parseInt(t, 10) || 1);
+  document.body.classList.remove("t1", "t2", "t3");
+  document.body.classList.add("t" + Math.min(3, next));
+  document.body.setAttribute("data-atmosphere-tier", String(Math.min(3, next)));
+}
 function renderChrome(crumbsHtml) {
   document.getElementById("nav-links").innerHTML =
     '<a href="#/">论坛首页</a> | <a href="#/board/guaitan">怪谈版</a> | <a href="#/board/xianliao">闲聊版</a> | <a href="#/board/zhanwu">站务版</a> | 排行榜';
@@ -85,7 +123,9 @@ function renderChrome(crumbsHtml) {
   var ub = document.getElementById("userbar");
   if (s) {
     var recycleLink = (s === "青灯") ? ' | <a href="#/recycle">回收站</a>' : "";
-    ub.innerHTML = "您好：<b>" + esc(s) + "</b>　<a href='#/pm'>短消息</a>" + recycleLink + " | <a href='#' id='logout-link'>退出</a>";
+    var unread = pmUnreadCount(s);
+    var pmLabel = "短消息" + (unread ? " <span class='pm-unread'>(" + unread + ")</span>" : "");
+    ub.innerHTML = "您好：<b>" + esc(s) + "</b>　<a href='#/pm'>" + pmLabel + "</a>" + recycleLink + " | <a href='#' id='logout-link'>退出</a>";
     document.getElementById("logout-link").addEventListener("click", function (e) {
       e.preventDefault();
       localStorage.removeItem("bbs_session");
@@ -98,8 +138,7 @@ function renderChrome(crumbsHtml) {
   if (!f) {
     var sb = document.createElement("div");
     sb.className = "searchform-wrap";
-    sb.style.cssText = "max-width:960px;margin:0 auto;background:#DCE7F0;border:1px solid #9DB3C5;border-top:none;padding:5px 14px;font-size:12px;";
-    sb.innerHTML = '搜索：<input type="text" id="search-input" style="width:200px;font-family:SimSun,宋体,serif;border:1px solid #9DB3C5;padding:2px 4px;"> <button id="search-btn" style="font-family:SimSun,宋体,serif;cursor:pointer;">搜索</button> <span style="color:#888;">（帖子里的点状词都可以直接点击搜索）</span>';
+    sb.innerHTML = '搜索：<input type="text" id="search-input" aria-label="搜索论坛存档" placeholder="输入一个词，例如：右灯"> <button id="search-btn">搜索</button> <span>原站索引不完整，结果可能不止一页</span>';
     var view = document.getElementById("view");
     view.parentNode.insertBefore(sb, view);
     document.getElementById("search-btn").addEventListener("click", function () {
@@ -166,7 +205,7 @@ function viewIndex() {
     var name = b.broken ? '<span style="color:#999;">' + b.name + '</span>' : '<a href="#/board/' + b.id + '">' + b.name + '</a>';
     html += '<tr' + (i % 2 ? ' class="alt"' : '') + '><td><div class="board-name">' + name + '</div><div class="board-desc">' + b.desc + '</div></td>' +
       '<td class="c">' + (b.broken ? "-- / --" : n + " / " + posts) + '</td><td class="lastpost">' +
-      (last ? '<a href="#/thread/' + last.id + '">' + esc(last.title) + '</a><br>' + last.time + '　' + esc(last.uid) : "—") + '</td></tr>';
+      (last ? '<a href="#/thread/' + last.id + '">' + esc(last.title) + '</a><br>' + last.time + '　' + esc(last.uid) : "-") + '</td></tr>';
   }
   html += '</table>';
   html += '<div class="quote" style="margin-top:14px;">本论坛已于2012年9月关闭。当前为只读存档。帖子里的<span class="hw">点状词</span>是存档系统自动标记的检索词，点击即可搜索。</div>';
@@ -220,7 +259,7 @@ function postHtml(p, tier) {
     '<div class="p-meta">注册：' + u.reg + '<br>发帖：' + u.posts + '</div></div>' +
     '<div class="p-main"><div class="p-bar"><span class="p-time">' + p.time + '</span><span class="p-fn">' + (p.num ? p.num + "楼" : "") + '</span><span class="p-links">引用　回复</span></div>' +
     '<div class="p-cont">' + hotwords(p.html) +
-    (u.sig ? '<div class="sigline">――――――――――<br>' + esc(u.sig) + '</div>' : "") +
+    (u.sig ? '<div class="sigline">' + esc(u.sig) + '</div>' : "") +
     '</div></div></div>';
 }
 
@@ -317,12 +356,12 @@ function viewLogin(msg) {
   setTier(1);
   renderChrome("» 会员登录");
   document.getElementById("view").innerHTML =
-    '<div class="login-panel"><h3>会员登录</h3>' +
+    '<form class="login-panel" onsubmit="return false;"><h3>会员登录</h3>' +
     '<input type="text" id="login-name" placeholder="用户名">' +
     '<input type="password" id="login-pass" placeholder="密码">' +
     '<button id="login-btn">登录</button>' +
     '<div class="login-err">' + (msg || "") + '</div>' +
-    '<div class="login-tip">提示：账号就藏在帖子里。初始密码的事，版规里写过。</div></div>';
+    '<div class="login-tip">提示：账号就藏在帖子里。初始密码的事，版规里写过。</div></form>';
   document.getElementById("login-btn").addEventListener("click", function () {
     var n = document.getElementById("login-name").value.replace(/^\s+|\s+$/g, "");
     var p = document.getElementById("login-pass").value.replace(/^\s+|\s+$/g, "");
@@ -345,12 +384,13 @@ function viewPM(box, idx) {
   if (!s) { viewLogin("请先登录。"); return; }
   setTier(s === "提灯人" ? 3 : 2);
   renderChrome("» 短消息");
-  var data = BBS.pms[s] || { inbox: [], drafts: [] };
+  var data = pmDataFor(s);
   if (idx !== undefined && idx !== null && idx !== "") {
     var list = box === "drafts" ? data.drafts : data.inbox;
     var pm = list[parseInt(idx, 10)];
     if (!pm) { location.hash = "#/pm"; return; }
     if (pm.doc) markVisited(pm.id);
+    markPmRead(pm.id);
     document.getElementById("view").innerHTML =
       '<div class="thread-head-bar">' + esc(pm.title) + '</div>' +
       '<div class="quote">' + (box === "drafts" ? "存于草稿箱" : "发件人：" + esc(pm.from)) + "　" + pm.time + '</div>' +
@@ -365,7 +405,7 @@ function viewPM(box, idx) {
   if (!show.length) html += '<tr><td colspan="3" class="c" style="color:#999;">（空）</td></tr>';
   for (var i = 0; i < show.length; i++) {
     var pm2 = show[i];
-    html += '<tr' + (i % 2 ? ' class="alt"' : '') + '><td><a href="#/pm/' + (box === "drafts" ? "drafts/" : "") + i + '">' + esc(pm2.title) + '</a></td>' +
+    html += '<tr' + (i % 2 ? ' class="alt"' : '') + '><td>' + (pmWasRead(pm2.id) ? '' : '<span class="pm-unread">未读　</span>') + '<a href="#/pm/' + (box === "drafts" ? "drafts/" : "") + i + '">' + esc(pm2.title) + '</a></td>' +
       '<td class="c">' + (box === "drafts" ? "草稿" : esc(pm2.from)) + '</td><td class="pm-time">' + pm2.time + '</td></tr>';
   }
   html += '</table>';
@@ -458,7 +498,11 @@ function route() {
   if (parts[0] === "user") return viewUser(parts[1]);
   if (parts[0] === "login") return viewLogin();
   if (parts[0] === "logout") { localStorage.removeItem("bbs_session"); location.hash = "#/"; return location.reload(); }
-  if (parts[0] === "pm") return viewPM(parts[1], parts[2]);
+  if (parts[0] === "pm") {
+    /* Inbox links are kept short ("#/pm/0") like old BBS software. */
+    if (parts[1] && /^\d+$/.test(parts[1])) return viewPM("inbox", parts[1]);
+    return viewPM(parts[1] || "inbox", parts[2]);
+  }
   if (parts[0] === "recycle") return viewRecycle(parts[1]);
   if (parts[0] === "search") return viewSearch(parts.slice(1).join("/"));
   if (parts[0] === "37") return viewThread("t_37");
