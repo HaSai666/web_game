@@ -187,7 +187,7 @@ BBS.routes = {
   "资料": "u:右灯", "提灯人": "u:提灯人", "交代": "u:提灯人", "真相": "u:提灯人"
 };
 
-/* ---------- 36份关键文档 ---------- */
+/* ---------- 可追踪的阅读条目 ---------- */
 BBS.docs = [
   "t_main","t_rules","t_boards","t_admin1",
   "t_exp1","t_exp2","t_exp2b","t_exp3","t_exp3b","t_ten","t_hama","t_granny",
@@ -197,23 +197,23 @@ BBS.docs = [
   "del_wu","del_37","u_youdeng","u_tidengren"
 ];
 
-/* ---------- 调查笔记·阶段目标 ---------- */
+/* ---------- 阅读旁注（保留给旧版脚本的中性文案） ---------- */
 BBS.objectives = [
-  { need: null, text: "进「怪谈版」读右灯的主帖（或搜：右灯）" },
-  { need: "t_main", text: "把主帖提到的三个实验实录搜出来看：搜 削苹果 / 香灰拌饭 / 血腥玛丽（点帖子里的点状词也行）" },
-  { need: ["t_exp1","t_exp2","t_exp3"], text: "搜实验的后续：他做的「梦」，和被删掉的「配图」" },
-  { need: ["t_exp2b","t_exp3b"], text: "搜「见鬼十法」（直接把这四个字打进搜索框，别带书名号）" },
-  { need: "t_ten", text: "搜「提灯前的蛤蟆」，看警告过他的人是什么来头" },
-  { need: "t_hama", text: "看右灯的资料页：点主帖里他的头像，或搜「资料」。记下最后在线时间" },
-  { need: "u_youdeng", text: "回主帖读到最后几楼：第37楼去哪了？然后搜「版主」看公告" },
-  { need: "t_notice", text: "搜「打卡」，看断更之后大家等了他多久" },
-  { need: "t_checkin", text: "搜「回归」。2008年他回来过一次" },
-  { need: "t_return", text: "搜「IP」，看网友的考据" },
-  { need: "t_ip", text: "点右上角「登录」，登录小刀的账号：密码是论坛初始密码（版规里写过）。登录后看「短消息」" },
-  { need: "pm_youdeng", text: "登录「提灯人」：密码是那一天的时刻（右灯资料页里有）。看他的草稿箱" },
-  { need: ["draft1","draft2","draft3"], text: "搜「站长日志」，看站长这些年的考据（一篇篇顺着读）" },
-  { need: ["t_log1","t_log2","t_log3","t_log4","t_log5"], text: "版主的密码藏在机柜编号里（站务版搜「机柜」；访谈帖里他自己说漏过）。登录青灯，点「回收站」" },
-  { need: ["del_wu","del_37"], text: "补全背景：搜「凑数」看民俗考据，搜「失踪」看当年的报纸" },
-  { need: ["t_folk","t_news"], text: "搜「第十一法」……然后，搜那四个字" },
-  { need: "t_37", text: "你数到五了。" }
+  { need: null, text: "首页的时间字段仍能对齐。" },
+  { need: "t_main", text: "主帖里的签名和日期有轻微差别。" },
+  { need: ["t_exp1","t_exp2","t_exp3"], text: "三张实验记录的空白并不相同。" },
+  { need: ["t_exp2b","t_exp3b"], text: "旧版块的标题使用了不同的标点。" },
+  { need: "t_ten", text: "有一段警告没有留下发件页。" },
+  { need: "t_hama", text: "资料页的最后在线时间没有落款。" },
+  { need: "u_youdeng", text: "楼层之间少了一行，页面没有解释。" },
+  { need: "t_notice", text: "公告的间距和其他帖子不一样。" },
+  { need: "t_checkin", text: "同一用户名在不同年份出现。" },
+  { need: "t_return", text: "一条地址记录的格式被截断。" },
+  { need: "t_ip", text: "登录页保留了一个旧字段。" },
+  { need: "pm_youdeng", text: "收件箱里有一封没有主题的信。" },
+  { need: ["draft1","draft2","draft3"], text: "日志的最后编辑时间彼此重叠。" },
+  { need: ["t_log1","t_log2","t_log3","t_log4","t_log5"], text: "机柜编号在两处写法不同。" },
+  { need: ["del_wu","del_37"], text: "回收站保留了两个空标题。" },
+  { need: ["t_folk","t_news"], text: "同一个时间在页面边缘再次出现。" },
+  { need: "t_37", text: "作者字段仍然为空。" }
 ];

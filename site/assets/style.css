@@ -345,7 +345,7 @@ body.t3 .p-bar { background: #1F0B0B; border-color: #3A1515; color: #6A4A4A; }
 body.t3 .p-bar .p-links { color: #4A2A2A; }
 body.t3 .p-avatar { border-color: #3A1515; }
 
-/* ================= 调查笔记 ================= */
+/* ================= 阅读旁注 ================= */
 #notes-box {
   position: fixed; right: 12px; top: 60px; z-index: 10000;
   width: 230px;

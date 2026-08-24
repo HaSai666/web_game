@@ -91,7 +91,7 @@ function onlineNum() {
   return 4;
 }
 
-/* ---------- 第37楼门禁：读过「第十一法」或集齐36份文档才可见 ---------- */
+/* ---------- 缺失楼层门禁 ---------- */
 function canSee37() {
   var v = getVisited();
   if (v.indexOf("t_eleven") !== -1) return true;
@@ -99,6 +99,21 @@ function canSee37() {
     if (v.indexOf(BBS.docs[i]) === -1) return false;
   }
   return true;
+}
+
+function setEndingSignal(value) {
+  try { localStorage.setItem("bbs_ending_signal", value); } catch (e) {}
+}
+function noteRouteTransition(next) {
+  var previous = "";
+  try { previous = localStorage.getItem("bbs_last_route") || ""; } catch (e) {}
+  if (!next && previous.indexOf("pm") === 0 && localStorage.getItem("bbs_read_rightlamp") === "1") {
+    try { localStorage.setItem("bbs_returned_home_after_pm", "1"); } catch (e2) {}
+  }
+  if (next.indexOf("thread/t_37") === 0 && previous.indexOf("search/") === 0) {
+    try { localStorage.setItem("bbs_entered_final_from_search", "1"); } catch (e3) {}
+  }
+  try { localStorage.setItem("bbs_last_route", next); } catch (e4) {}
 }
 
 /* ---------- 渲染·骨架 ---------- */
@@ -152,33 +167,24 @@ function renderChrome(crumbsHtml) {
   injectNotes();
 }
 
-/* ---------- 调查笔记 ---------- */
-function currentObjective() {
+/* ---------- 阅读旁注 ---------- */
+function archiveMarginNote() {
   var v = getVisited();
-  for (var i = 0; i < BBS.objectives.length; i++) {
-    var s = BBS.objectives[i];
-    if (!s.need) {
-      if (v.indexOf("t_main") === -1) return s.text;
-      continue;
-    }
-    var needs = (typeof s.need === "string") ? [s.need] : s.need, done = true;
-    for (var j = 0; j < needs.length; j++) if (v.indexOf(needs[j]) === -1) { done = false; break; }
-    if (!done) return s.text;
-  }
-  return "你数到五了。";
+  if (v.indexOf("t_37") !== -1 || v.indexOf("t_eleven") !== -1) return "03:44 在两个位置出现，间隔没有说明。";
+  if (v.indexOf("t_log4") !== -1 || v.indexOf("t_log5") !== -1) return "最后编辑时间与读取时间重叠。";
+  if (v.indexOf("t_main") !== -1) return "同一位用户的签名在旧年份留下了另一种写法。";
+  return "夜间帖子使用的时间格式与白天不同。";
 }
 function injectNotes() {
   var old = document.getElementById("notes-box");
   if (old) old.remove();
-  var v = getVisited().filter(function (x) { return BBS.docs.indexOf(x) !== -1; });
   var box = document.createElement("div");
   box.id = "notes-box";
   box.innerHTML =
-    '<div id="notes-head">调查笔记 ▾</div>' +
+    '<div id="notes-head">阅读旁注 ▾</div>' +
     '<div id="notes-body">' +
-      '<div class="notes-sec">背景：2005年，右灯在“四角游戏”直播中断更，下落不明。</div>' +
-      '<div class="notes-sec">进度：关键文档 <b>' + v.length + '</b> / 36</div>' +
-      '<div class="notes-sec">当前目标：<span class="notes-goal">' + currentObjective() + '</span></div>' +
+      '<div class="notes-sec">原始记录：夜间帖子有一段时间字段没有对齐。</div>' +
+      '<div class="notes-sec">观察：<span class="notes-goal">' + archiveMarginNote() + '</span></div>' +
     '</div>';
   document.body.appendChild(box);
   document.getElementById("notes-head").addEventListener("click", function () {
@@ -296,6 +302,7 @@ function viewThread(tid) {
   var unlocked = BBS.docs.every(function (d) { return getVisited().indexOf(d) !== -1; });
   html += '<div class="reply-box"><b>快速回复</b>　<span class="reply-note">（本论坛已于2012年关闭）</span>' +
     '<textarea id="reply-text"></textarea><br><button id="reply-btn">发表回复</button></div>';
+  if (t.id === "t_37" && window.ArchiveEndings) html += window.ArchiveEndings.render(window.ArchiveEndings.pick());
   document.getElementById("view").innerHTML = html;
 
   /* 第37楼按钮 */
@@ -314,6 +321,7 @@ function viewThread(tid) {
       var f = { tid: t.id, uid: session() || "游客", time: "2005-02-27 03:44", num: "??",
         html: "<p>" + esc(txt) + "</p>" };
       myFloors.push(f);
+      setEndingSignal("occupied");
       try { localStorage.setItem("bbs_myfloors", JSON.stringify(myFloors)); } catch (e) {}
       viewThread(t.id);
     } else {
@@ -361,7 +369,7 @@ function viewLogin(msg) {
     '<input type="password" id="login-pass" placeholder="密码">' +
     '<button id="login-btn">登录</button>' +
     '<div class="login-err">' + (msg || "") + '</div>' +
-    '<div class="login-tip">提示：账号就藏在帖子里。初始密码的事，版规里写过。</div></form>';
+    '<div class="login-tip">提示：注册功能已关闭。旧账号的密码仍按原站规则校验。</div></form>';
   document.getElementById("login-btn").addEventListener("click", function () {
     var n = document.getElementById("login-name").value.replace(/^\s+|\s+$/g, "");
     var p = document.getElementById("login-pass").value.replace(/^\s+|\s+$/g, "");
@@ -391,6 +399,9 @@ function viewPM(box, idx) {
     if (!pm) { location.hash = "#/pm"; return; }
     if (pm.doc) markVisited(pm.id);
     markPmRead(pm.id);
+    if (pm.id === "evt_pm_rightlamp_0336") {
+      try { localStorage.setItem("bbs_read_rightlamp", "1"); } catch (e) {}
+    }
     document.getElementById("view").innerHTML =
       '<div class="thread-head-bar">' + esc(pm.title) + '</div>' +
       '<div class="quote">' + (box === "drafts" ? "存于草稿箱" : "发件人：" + esc(pm.from)) + "　" + pm.time + '</div>' +
@@ -428,6 +439,7 @@ function viewRecycle(idx) {
     var d = BBS.deleted[parseInt(idx, 10)];
     if (!d) { location.hash = "#/recycle"; return; }
     markVisited(d.id);
+    if (d.id === "del_37" && s === "青灯") setEndingSignal("sealed");
     document.getElementById("view").innerHTML =
       '<div class="thread-head-bar">' + esc(d.title) + '</div>' +
       '<div class="quote">' + d.log + '　原时间：' + d.time + '</div>' +
@@ -467,7 +479,7 @@ function viewSearch(q) {
   renderChrome("» 搜索");
   if (!q) { document.getElementById("view").innerHTML = '<div class="quote">请输入关键词。</div>'; return; }
   var r = findRoute(q);
-  if (r === "t_37" && !canSee37()) r = null; /* 第37楼对未到时机的人不存在 */
+  if (r === "t_37" && !canSee37()) r = null; /* 缺失楼层仍保持隐藏 */
   if (!r) {
     var v = getVisited().length, msg;
     if (v < 8) msg = "<p>没有找到与「" + esc(q) + "」相关的内容。</p><p class='stamp'>请检查关键词，或回到帖子里找别的词。</p>";
@@ -489,9 +501,18 @@ function viewSearch(q) {
 }
 
 /* ---------- 路由 ---------- */
+function viewEnding(id) {
+  var endings = window.ArchiveEndings;
+  if (!endings) { viewIndex(); return; }
+  var chosen = endings.valid(id) ? id : endings.pick();
+  setTier(3);
+  renderChrome("» 读取记录");
+  document.getElementById("view").innerHTML = endings.render(chosen);
+}
 function route() {
   var h = location.hash.replace(/^#\/?/, "");
   var parts = h.split("/");
+  noteRouteTransition(h);
   if (!h) return viewIndex();
   if (parts[0] === "board") return viewBoard(parts[1]);
   if (parts[0] === "thread") return viewThread(parts[1]);
@@ -504,6 +525,7 @@ function route() {
     return viewPM(parts[1] || "inbox", parts[2]);
   }
   if (parts[0] === "recycle") return viewRecycle(parts[1]);
+  if (parts[0] === "ending") return viewEnding(parts[1]);
   if (parts[0] === "search") return viewSearch(parts.slice(1).join("/"));
   if (parts[0] === "37") return viewThread("t_37");
   viewIndex();

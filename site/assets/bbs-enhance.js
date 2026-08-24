@@ -70,27 +70,28 @@
     for (var i = 0; i < docs.length; i++) if (v.indexOf(docs[i]) !== -1) n++;
     return n;
   }
-  function phaseGoal(n) {
-    if (n < 1) return "先找到一篇关于右灯的直播帖。";
-    if (n < 4) return "把三次实验的记录和主帖时间线对上。";
-    if (n < 8) return "确认照片被删掉的时间，以及谁提前知道。";
-    if (n < 13) return "把版规、公告和断更夜放在同一张纸上。";
-    if (n < 19) return "找出 03:33 到 03:44 之间，服务器到底记下了什么。";
-    if (n < 27) return "追查提灯人、站长日志，以及回收站里的空字段。";
-    if (n < 35) return "不要急着数。先确认哪一个角落一直没有空过。";
-    return "你已经打开了那一层。现在只剩下一个问题。";
-  }
-  function phaseHint(n, level) {
-    var hints = [
-      "从置顶帖开始。一个用户名会在别的年份再次出现。",
-      "隐藏帖不会出现在版块列表里，旧论坛只会在正文里留下入口。",
-      "把照片的拍摄时间和编辑记录分开记。它们不是同一件事。",
-      "看站务公告的语气，再看同一时间段的闲聊回复。有人在替谁收尾。",
-      "登录不是奖励。每个账号只知道自己那一小块，拼起来仍然缺一角。",
-      "如果你听见自己开始报数，停在四之前。"
+  function archiveObservation(n) {
+    var observations = [
+      "夜间帖子使用的时间格式与白天不同。",
+      "同一位用户的签名在旧年份留下了另一种写法。",
+      "图片下方的空白比原帖记录得更长。",
+      "版务公告的间距与回复页不一致。",
+      "03:44 在两个位置出现，间隔没有说明。",
+      "有一行在每次打开时向下移动。"
     ];
-    var idx = Math.min(hints.length - 1, Math.max(0, Math.floor(n / 6) + level - 1));
-    return hints[idx];
+    return observations[Math.min(observations.length - 1, Math.floor(n / 6))];
+  }
+  function archiveWhisper(n, level) {
+    var whispers = [
+      "有个用户名在别的年份出现过，写法不完全相同。",
+      "版块列表没有这条记录，正文里却留着入口。",
+      "照片的拍摄时间和编辑时间没有对齐。",
+      "公告与同一时段的闲聊回复使用了不同的标点。",
+      "登录页的空白字段比其他页面宽一点。",
+      "如果听见自己开始报数，把窗口留在原处。"
+    ];
+    var idx = Math.min(whispers.length - 1, Math.max(0, Math.floor(n / 7) + level - 1));
+    return whispers[idx];
   }
   function setDepth() {
     var n = docCount(), depth = n >= 24 ? 3 : (n >= 8 ? 2 : 1);
@@ -101,12 +102,12 @@
     if (!presence) {
       presence = document.createElement("span");
       presence.id = "archive-presence";
+      presence.setAttribute("aria-hidden", "true");
       var stat = document.getElementById("online-stat");
       if (stat && stat.parentNode) stat.parentNode.insertBefore(presence, stat);
     }
-    if (n >= 35) presence.textContent = "连接：5 / 有一条未知连接";
-    else if (n >= 16) presence.textContent = "连接：4 / 读取中";
-    else presence.textContent = "连接：4 / 只读";
+    presence.textContent = "";
+    presence.setAttribute("data-whisper", depth >= 3 ? "echo" : (depth >= 2 ? "offset" : "still"));
   }
   function enhanceNotes() {
     var old = document.getElementById("notes-box");
@@ -117,14 +118,13 @@
     try { savedCollapse = localStorage.getItem("bbs_notes_collapsed"); } catch (e2) {}
     collapsed = savedCollapse === "1" || (savedCollapse === null && window.innerWidth < 760);
     old.innerHTML =
-      '<div id="notes-head" role="button" tabindex="0" aria-expanded="' + (!collapsed) + '">调查笔记 <span class="notes-count">' + n + '/36</span>　' + (collapsed ? "▸" : "▾") + '</div>' +
+      '<div id="notes-head" role="button" tabindex="0" aria-expanded="' + (!collapsed) + '">阅读旁注 <span class="notes-mark" aria-hidden="true">▦</span>　' + (collapsed ? "▸" : "▾") + '</div>' +
       '<div id="notes-body"' + (collapsed ? ' style="display:none"' : '') + '>' +
-      '<div class="notes-sec">背景：右灯在四角游戏直播中断更。论坛的时间戳从那晚开始不再可信。</div>' +
-      '<div class="notes-sec">进度：关键文档 <b>' + n + '</b> / 36</div>' +
-      '<div class="notes-sec">当前方向：<span class="notes-goal">' + phaseGoal(n) + '</span></div>' +
-      '<div class="notes-sec notes-recent">最近读取：' + esc((localStorage.getItem("bbs_last_thread") || "无记录")) + '</div>' +
-      '<button type="button" class="notes-hint" id="notes-hint">' + (level ? "再看一条提示" : "需要一点提示") + '</button>' +
-      '<div class="notes-sec notes-recent" id="notes-hint-text"' + (level ? '' : ' style="display:none"') + '>' + (level ? esc(phaseHint(n, level)) : '') + '</div>' +
+      '<div class="notes-sec">原始记录：夜间帖子有一段时间字段没有对齐。</div>' +
+      '<div class="notes-sec">观察：<span class="notes-goal">' + archiveObservation(n) + '</span></div>' +
+      '<div class="notes-sec notes-recent">最近打开：' + esc((localStorage.getItem("bbs_last_thread") || "暂无")) + '</div>' +
+      '<button type="button" class="notes-hint" id="notes-hint">' + (level ? "展开旧注" : "留下旁注") + '</button>' +
+      '<div class="notes-sec notes-recent" id="notes-hint-text"' + (level ? '' : ' style="display:none"') + '>' + (level ? esc(archiveWhisper(n, level)) : '') + '</div>' +
       '</div>';
     var head = document.getElementById("notes-head");
     var body = document.getElementById("notes-body");
@@ -142,8 +142,8 @@
       level = Math.min(6, level + 1);
       try { localStorage.setItem("bbs_hint_level", String(level)); } catch (e) {}
       var target = document.getElementById("notes-hint-text");
-      if (target) { target.style.display = "block"; target.textContent = phaseHint(n, level); }
-      hint.textContent = level >= 6 ? "提示已到尽头" : "再看一条提示";
+      if (target) { target.style.display = "block"; target.textContent = archiveWhisper(n, level); }
+      hint.textContent = level >= 6 ? "旧注已展开" : "展开旧注";
     });
   }
   function ensureChrome() {
@@ -158,20 +158,20 @@
       if (hint) { hint.className = "search-hint"; hint.textContent = "原站索引不完整，结果可能不止一页"; }
     }
     var footer = document.getElementById("footer");
-    if (footer) footer.innerHTML = '<span>莲灯夜话 / 只读存档 / 数据完整性未知</span><span>最后一次可验证时间：03:44</span>';
+    if (footer) footer.innerHTML = '<span>莲灯夜话 / 离线镜像 / 字段未校验</span><span>镜像时标：03:44</span>';
   }
   function addRoutePresence(tid) {
     var view = document.getElementById("view");
     if (!view || view.querySelector(".presence-warning")) return;
     var text = "";
     var n = docCount();
-    if (tid === "t_37") text = "作者字段为空。系统仍然把这一层归给右灯。";
-    else if (tid === "t_main" && n >= 8) text = "本页有一处楼层断层。刷新不会修复它。";
-    else if (tid === "t_log4" || tid === "t_log5") text = "站长日志的最后编辑时间与当前读取时间相同。";
+    if (tid === "t_37") text = "作者字段为空。页面把这一行留在原位。";
+    else if (tid === "t_main" && n >= 8) text = "本页有一处楼层断层。";
+    else if (tid === "t_log4" || tid === "t_log5") text = "最后编辑时间与读取时间重叠。";
     if (!text) return;
     var note = document.createElement("div");
     note.className = "presence-warning";
-    note.innerHTML = "<b>存档状态</b>　" + esc(text);
+    note.innerHTML = "<b>读取备注</b>　" + esc(text);
     var title = view.querySelector(".thread-head-bar");
     if (title) title.parentNode.insertBefore(note, title.nextSibling);
   }
@@ -247,7 +247,7 @@
     if (!view || view.querySelector(".pm-security")) return;
     var bar = document.createElement("div");
     bar.className = "pm-security";
-    bar.textContent = "站内信服务器：离线镜像。打开一封信会留下读取记录。";
+    bar.textContent = "站内信来自离线镜像。时间字段按原样保留。";
     var table = view.querySelector("table.bbs");
     if (table) table.parentNode.insertBefore(bar, table);
   }

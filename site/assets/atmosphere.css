@@ -706,3 +706,223 @@ body[data-archive-depth="3"] #view { background: linear-gradient(180deg, rgba(31
   #archive-ambient .ambient-photo { transition: none; }
   .monitor-bars i, .archive-toast, .archive-modal-backdrop, .archive-modal { animation: none !important; }
 }
+
+/* ========================================================================
+   Quiet drift
+   The archive never announces a deeper state. It only becomes a little less
+   trustworthy: a duplicated time, a shifted seam, a room that was not there
+   on the first visit. These changes are deliberately low contrast.
+   ======================================================================== */
+.forum-page.t2 {
+  --ink: #0d1515;
+  --ink-soft: #121d1c;
+  --surface: #162120;
+  --surface-raised: #1d2b29;
+  --surface-deep: #0d1717;
+  --paper: #c5cbc0;
+  --paper-dim: #8e9d94;
+  --paper-faint: #5e6b64;
+  --line: #34433f;
+  --line-strong: #637269;
+  --accent: #987265;
+  --accent-dim: #65453e;
+  --cold: #a5b8ac;
+  --ambient-opacity: .30;
+}
+.forum-page.t3 {
+  --ink: #0d1011;
+  --ink-soft: #121719;
+  --surface: #151a1c;
+  --surface-raised: #1d2527;
+  --surface-deep: #0d1214;
+  --paper: #c7c8c1;
+  --paper-dim: #928e8d;
+  --paper-faint: #5d5c5b;
+  --line: #3c3838;
+  --line-strong: #69504c;
+  --accent: #a15d53;
+  --accent-dim: #6b403b;
+  --cold: #aab8b1;
+  --ambient-opacity: .42;
+}
+
+/* The peripheral room is a composition, not a wallpaper. */
+#archive-ambient::before {
+  content: "";
+  position: absolute;
+  right: 7vw;
+  top: 13vh;
+  width: min(250px, 19vw);
+  height: 69vh;
+  opacity: 0;
+  background:
+    linear-gradient(90deg, transparent 0 10%, rgba(159, 177, 168, .16) 10.4% 10.8%, transparent 11.2% 78%, rgba(159, 177, 168, .10) 78.3% 78.8%, transparent 79.2%),
+    linear-gradient(180deg, transparent 0 17%, rgba(159, 177, 168, .11) 17.4% 17.9%, transparent 18.3%),
+    radial-gradient(ellipse at 68% 22%, rgba(197, 205, 193, .11) 0 3%, transparent 4%);
+  filter: blur(2px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  transition: opacity 1.8s ease, transform 1.8s ease;
+}
+#archive-ambient { background: radial-gradient(ellipse at 50% 100%, rgba(31, 49, 46, .07), transparent 52%), #0b1011; }
+#archive-ambient .ambient-shadow::before {
+  content: "";
+  position: absolute;
+  left: 39%;
+  top: 8%;
+  width: 18%;
+  height: 72%;
+  border-radius: 48% 48% 24% 24%;
+  background: radial-gradient(ellipse at 50% 18%, rgba(4, 6, 7, .72) 0 7%, transparent 8%), linear-gradient(180deg, rgba(4, 6, 7, .48), rgba(4, 6, 7, .78));
+  opacity: 0;
+  filter: blur(11px);
+  transform: translateY(8px);
+  transition: opacity 1.8s ease, transform 2.2s ease;
+}
+.forum-page.t2 #archive-ambient::before { opacity: .16; transform: translateX(-6px); }
+.forum-page.t2 #archive-ambient .ambient-shadow::before { opacity: .10; transform: translateY(3px); }
+.forum-page.t3 #archive-ambient::before { opacity: .32; transform: translateX(0); }
+.forum-page.t3 #archive-ambient .ambient-shadow::before { opacity: .30; transform: translateY(0); }
+.forum-page.t2 #archive-ambient .ambient-photo {
+  background-image: linear-gradient(90deg, rgba(5, 9, 9, .86), rgba(5, 9, 9, .72) 50%, rgba(5, 9, 9, .90)), url("img/corner-v2.jpg");
+  background-position: 54% center;
+  filter: grayscale(.62) contrast(1.24) brightness(.40) blur(1.8px);
+}
+.forum-page.t3 #archive-ambient .ambient-photo {
+  background-image: linear-gradient(90deg, rgba(7, 8, 10, .80), rgba(7, 8, 10, .62) 50%, rgba(7, 8, 10, .88)), url("img/crossroad-v2.jpg");
+  background-position: 47% center;
+  filter: grayscale(.76) contrast(1.36) brightness(.34) blur(2.2px);
+}
+
+/* Let a trace of the room leak through the monitor glass. The content stays
+   above it, so the image reads as a reflection rather than a wallpaper. */
+.forum-page #view { position: relative; isolation: isolate; overflow: hidden; }
+.forum-page #view::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: .014;
+  background: linear-gradient(90deg, rgba(8, 12, 13, .82), rgba(8, 12, 13, .54) 52%, rgba(8, 12, 13, .86)), url("img/crt-v2.jpg") center / cover;
+  filter: grayscale(.75) contrast(1.2) brightness(.62) blur(1px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.forum-page #view > * { position: relative; z-index: 1; }
+.forum-page.t2 #view::before {
+  opacity: .030;
+  background: linear-gradient(90deg, rgba(6, 10, 10, .82), rgba(6, 10, 10, .56) 52%, rgba(6, 10, 10, .88)), url("img/corner-v2.jpg") center / cover;
+  filter: grayscale(.72) contrast(1.25) brightness(.48) blur(1.4px);
+}
+.forum-page.t3 #view::before {
+  opacity: .052;
+  background: linear-gradient(90deg, rgba(7, 8, 10, .78), rgba(7, 8, 10, .48) 52%, rgba(7, 8, 10, .84)), url("img/crossroad-v2.jpg") center / cover;
+  filter: grayscale(.82) contrast(1.32) brightness(.36) blur(1.8px);
+}
+
+/* Neutral labels stay readable while the frame acquires small mechanical errors. */
+.forum-page.t1 .rail-depth { color: var(--paper-dim); }
+.forum-page.t2 .rail-depth { color: var(--cold); letter-spacing: .08em; }
+.forum-page.t3 .rail-depth { color: var(--accent); letter-spacing: .14em; }
+.forum-page.t2 #crumbs { transform: translateX(1px); border-left-color: var(--line-strong) !important; }
+.forum-page.t3 #navbar { transform: translateX(-1px); }
+.forum-page.t3 #crumbs { letter-spacing: .12em; border-right-color: var(--accent-dim) !important; }
+.forum-page.t2 #view {
+  background-image: linear-gradient(180deg, rgba(36, 51, 48, .20), rgba(10, 16, 16, .94) 100%), repeating-linear-gradient(0deg, transparent 0 63px, rgba(162, 181, 171, .025) 64px, transparent 65px) !important;
+}
+.forum-page.t3 #view {
+  background-image: linear-gradient(180deg, rgba(77, 42, 40, .12), rgba(10, 12, 14, .96) 100%), repeating-linear-gradient(0deg, transparent 0 61px, rgba(191, 170, 163, .025) 62px, transparent 63px) !important;
+}
+.forum-page.t2 .rail-block:nth-child(3) { transform: translateX(1px); }
+.forum-page.t3 .rail-block:nth-child(3) { transform: translateX(2px); }
+.forum-page.t3 .monitor-bars i:nth-child(2),
+.forum-page.t3 .monitor-bars i:nth-child(6) { opacity: .28; }
+.forum-page.t3 .monitor-bars i:nth-child(4) { transform: translateY(-2px); }
+
+/* A duplicated timestamp is more unsettling than a red progress badge. */
+.forum-page #footer span:last-child { position: relative; }
+.forum-page.t2 #footer span:last-child::after,
+.forum-page.t3 #footer span:last-child::after {
+  content: "03:44";
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  color: var(--paper-faint);
+  opacity: .24;
+  pointer-events: none;
+}
+.forum-page.t3 #footer span:last-child::after { left: 6px; top: -1px; opacity: .36; }
+
+/* Do not let an old cached fragment bring back the numeric walkthrough. */
+.forum-page .notes-count { display: none !important; }
+.forum-page .notes-mark { color: var(--paper-faint); font-size: 10px; }
+.forum-page .notes-goal { color: var(--paper-dim); }
+.forum-page.t2 #notes-box { border-color: var(--line-strong); background: rgba(16, 27, 26, .95); }
+.forum-page.t3 #notes-box { border-color: var(--line-strong); background: rgba(17, 18, 19, .96); }
+.forum-page.t3 #notes-head { background: rgba(46, 39, 39, .58); }
+.forum-page .notes-goal { color: var(--paper-dim) !important; }
+#archive-presence { display: none !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .forum-page.t2 #archive-ambient .ambient-photo { animation: room-breathe 18s ease-in-out infinite alternate; }
+  .forum-page.t3 #archive-ambient .ambient-photo { animation: room-breathe 13s ease-in-out infinite alternate; }
+  body[data-archive-whisper="echo"] #crumbs { animation: archive-echo 8s steps(1, end) infinite; }
+}
+@keyframes room-breathe {
+  from { transform: scale(1.035) translate3d(0, 0, 0); }
+  to { transform: scale(1.075) translate3d(-.4%, .25%, 0); }
+}
+@keyframes archive-echo {
+  0%, 91%, 100% { opacity: 1; }
+  93% { opacity: .66; }
+  95% { opacity: .92; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .forum-page.t2 #archive-ambient .ambient-photo,
+  .forum-page.t3 #archive-ambient .ambient-photo,
+  body[data-archive-whisper="echo"] #crumbs { animation: none !important; }
+  #archive-ambient::before, #archive-ambient .ambient-shadow::before { transition: none; }
+}
+
+/* Ending records use the same grammar as a forum post. There is no game
+   badge or completion banner, only one last piece of the recovered page. */
+.ending-record {
+  position: relative;
+  max-width: 760px;
+  margin: 22px 0 4px;
+  padding: 16px 16px 15px;
+  border: 1px solid var(--line-strong);
+  border-left: 2px solid var(--accent-dim);
+  background: linear-gradient(180deg, rgba(32, 42, 41, .76), rgba(14, 19, 20, .86));
+  box-shadow: 0 12px 30px rgba(3, 7, 7, .22);
+}
+.ending-record::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 44px;
+  height: 18px;
+  opacity: .28;
+  background: repeating-linear-gradient(90deg, var(--line-strong) 0 4px, transparent 4px 8px);
+  pointer-events: none;
+}
+.ending-kicker { color: var(--paper-faint); font: 10px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .12em; }
+.ending-record h2 { margin: 8px 58px 10px 0; color: var(--paper); font-family: SimSun, "Noto Serif CJK SC", serif; font-size: 20px; font-weight: normal; }
+.ending-copy { max-width: 58ch; margin: 0; color: var(--paper-dim); line-height: 1.8; }
+.ending-fragment { margin: 13px 0 0; padding-top: 9px; border-top: 1px dashed var(--line); color: var(--paper-faint); font: 10px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.ending-note { margin: 10px 0 0; color: var(--paper-faint); font-size: 11px; }
+.ending-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.ending-actions a { display: inline-block; padding: 4px 9px; border: 1px solid var(--line-strong); color: var(--cold); font-size: 11px; text-decoration: none; }
+.ending-actions a:hover, .ending-actions a:focus-visible { border-color: var(--accent); color: var(--accent); }
+.ending-occupied { border-left-color: var(--accent); }
+.ending-sealed { background: linear-gradient(180deg, rgba(45, 35, 35, .74), rgba(17, 18, 19, .90)); }
+.ending-return { border-left-color: var(--cold); }
+.ending-silent { border-style: dashed; }
+.forum-page.t3 .ending-record { border-color: var(--line-strong); border-left-color: var(--accent); background: linear-gradient(180deg, rgba(43, 31, 32, .72), rgba(14, 16, 18, .92)); }
+.forum-page.t3 .ending-return { border-left-color: var(--cold); }
+@media (max-width: 760px) {
+  .ending-record { margin-top: 16px; padding: 13px 12px; }
+  .ending-record h2 { font-size: 18px; }
+  .ending-actions a { flex: 1 1 auto; text-align: center; }
+}

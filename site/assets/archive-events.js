@@ -19,7 +19,7 @@
   var EVENTS = [
     {
       id: "pm_rightlamp_0336",
-      label: "新短消息 / 右灯",
+      label: "短消息 / 右灯",
       kind: "pm",
       tier: 2,
       eligible: function (ctx) { return ctx.visited.indexOf("t_main") !== -1 && ctx.docs >= 3; },
@@ -27,35 +27,35 @@
         id: "evt_pm_rightlamp_0336",
         from: "右灯",
         time: "2005-02-27 03:36",
-        title: "别回主页",
-        html: "<p>你刚刚打开的那几页，不是给现在的人看的。</p><p>如果你看见主页上多了一个在线的人，不要刷新。刷新会让它知道你还在。</p><p>我先下了。你也别回头。</p>"
+        title: "刚才那页",
+        html: "<p>刚才那页在我这里显示的是另一种排法。</p><p>我把时间抄下来，回头再看，它又少了一行。</p><p>如果右上角的数字变了，先别急着刷新。</p>"
       },
-      toastTitle: "离线镜像收到一封新短消息",
-      toastText: "发件人：右灯。时间字段早于本站故障记录。登录后可以在短消息里读取完整内容。"
+      toastTitle: "收到一封新短消息",
+      toastText: "发件人：右灯。留言时间：03:36。镜像已经把它放进收件箱。"
     },
     {
       id: "admin_warning_floor37",
-      label: "站务提醒 / 青灯",
+      label: "版务留言 / 青灯",
       kind: "modal",
       tier: 2,
       eligible: function (ctx) {
         return ctx.docs >= 8 && (ctx.visited.indexOf("t_notice") !== -1 || ctx.visited.indexOf("t_server") !== -1 || ctx.route === "t_log4");
       },
-      modalTitle: "版主提醒",
-      modalText: "你已经连续打开了八份隐藏记录。请停止检索“第37楼”。这不是剧情提示，也不是系统建议。继续查找会影响存档完整性。",
-      modalStamp: "发件人：青灯　记录时间：2005-02-27 03:41　状态：未确认"
+      modalTitle: "版面暂时锁定",
+      modalText: "你好。旧版块刚刚收到一份无法归档的请求。为了避免重复写入，部分页面会保持只读。若你正在核对时间，请以页面当下显示为准。",
+      modalStamp: "发件人：青灯　留言时间：2005-02-27 03:41　状态：未确认"
     },
     {
       id: "system_unknown_connection",
-      label: "系统告警 / 未知连接",
+      label: "系统记录 / 03:44",
       kind: "modal",
       tier: 3,
       eligible: function (ctx) {
         return ctx.docs >= 16 && (ctx.visited.indexOf("t_eleven") !== -1 || ctx.visited.indexOf("t_log5") !== -1 || ctx.route === "t_37");
       },
-      modalTitle: "连接状态发生变化",
-      modalText: "已知连接：4。未知连接：1。该连接没有登录记录，没有请求来源，也没有退出时间。页面将继续提供只读内容。",
-      modalStamp: "节点：B27-0344　最后同步：03:44　刷新不会修复此状态"
+      modalTitle: "同步记录",
+      modalText: "镜像收到一条没有对应页面的请求。它只留下了一个时间戳，随后又被同一时间覆盖。页面仍可读取。",
+      modalStamp: "节点：B27-0344　最后同步：03:44　校验：未回传"
     }
   ];
 
@@ -72,9 +72,23 @@
     var value = read("bbs_visited", []);
     return Array.isArray(value) ? value : [];
   }
+  var LABEL_ALIASES = {
+    "新短消息 / 右灯": "短消息 / 右灯",
+    "站务提醒 / 青灯": "版务留言 / 青灯",
+    "系统告警 / 未知连接": "系统记录 / 03:44"
+  };
   function records() {
     var value = read(EVENT_KEY, []);
-    return Array.isArray(value) ? value : [];
+    if (!Array.isArray(value)) return [];
+    var changed = false;
+    for (var i = 0; i < value.length; i++) {
+      if (LABEL_ALIASES[value[i].label]) {
+        value[i].label = LABEL_ALIASES[value[i].label];
+        changed = true;
+      }
+    }
+    if (changed) write(EVENT_KEY, value);
+    return value;
   }
   function hasRecord(id) {
     var list = records();
@@ -108,6 +122,19 @@
     write(PM_KEY, map);
     try { window.dispatchEvent(new Event("archivepm")); } catch (e) {}
   }
+  function migratePms() {
+    var map = read(PM_KEY, {}), current = EVENTS[0].pm, changed = false;
+    for (var name in map) {
+      if (!Array.isArray(map[name])) continue;
+      for (var i = 0; i < map[name].length; i++) {
+        if (map[name][i] && map[name][i].id === current.id && (map[name][i].title !== current.title || map[name][i].html !== current.html)) {
+          map[name][i] = current;
+          changed = true;
+        }
+      }
+    }
+    if (changed) write(PM_KEY, map);
+  }
   function currentTier() {
     if (window.ArchiveAtmosphereState) return window.ArchiveAtmosphereState.get();
     var cls = document.body.className || "";
@@ -117,20 +144,21 @@
     var ctx = context(), tier = currentTier();
     var depth = document.getElementById("rail-depth"), signal = document.getElementById("rail-signal");
     var monitor = document.getElementById("monitor-state"), copy = document.getElementById("monitor-copy"), last = document.getElementById("rail-last-read");
-    if (depth) depth.textContent = tier >= 3 ? "红色记录" : (tier >= 2 ? "异常记录" : "正常记录");
-    if (signal) signal.textContent = tier >= 3 ? "未知连接" : (tier >= 2 ? "读取中" : "只读连接");
-    if (monitor) monitor.textContent = tier >= 3 ? "4 个已知连接 / 1 个未知" : (tier >= 2 ? "4 个连接 / 读取中" : "4 个已知连接");
-    if (copy) copy.textContent = ctx.docs >= 16 ? "索引正在回写" : (ctx.docs >= 8 ? "部分记录被移动" : "正在读取旧索引");
-    if (last) last.textContent = localStorage.getItem("bbs_last_thread") || "还没有读取记录";
+    if (depth) depth.textContent = tier >= 3 ? "03:44" : (tier >= 2 ? "03:36" : "03:33");
+    if (signal) signal.textContent = tier >= 3 ? "回声延迟" : (tier >= 2 ? "静默同步" : "离线镜像");
+    if (monitor) monitor.textContent = tier >= 3 ? "03:44" : (tier >= 2 ? "延迟" : "同步");
+    if (copy) copy.textContent = tier >= 3 ? "页脚没有落款" : (tier >= 2 ? "同一行出现两次" : "镜像正在等待请求");
+    if (last) last.textContent = localStorage.getItem("bbs_last_thread") || "暂无读取痕迹";
+    document.body.setAttribute("data-archive-whisper", tier >= 3 ? "echo" : (tier >= 2 ? "offset" : "still"));
   }
   function updateEventLog() {
     var node = document.getElementById("event-log-list");
     if (!node) return;
     var list = records();
-    if (!list.length) { node.innerHTML = "<span>尚无异常记录</span>"; return; }
+    if (!list.length) { node.innerHTML = "<span>暂未收到新条目</span>"; return; }
     var html = "";
     for (var i = list.length - 1; i >= 0 && i >= list.length - 4; i--) {
-      html += '<div class="event-log-entry"><b>' + esc(list[i].label) + '</b><span>已写入本地读取记录</span></div>';
+      html += '<div class="event-log-entry"><b>' + esc(list[i].label) + '</b><span>已保存到本地浏览记录</span></div>';
     }
     node.innerHTML = html;
   }
@@ -160,7 +188,7 @@
     clearRoot();
     var backdrop = document.createElement("div");
     backdrop.className = "archive-modal-backdrop";
-    backdrop.innerHTML = '<section class="archive-modal" role="dialog" aria-modal="true" aria-labelledby="archive-modal-title"><header class="archive-modal-head"><span>离线镜像 / 事件回写</span><b>03:44</b></header><div class="archive-modal-body"><h2 id="archive-modal-title">' + esc(evt.modalTitle) + '</h2><p>' + esc(evt.modalText) + '</p><p class="modal-stamp">' + esc(evt.modalStamp) + '</p></div><div class="archive-modal-actions"><button type="button" data-event-close>记录并关闭</button></div></section>';
+    backdrop.innerHTML = '<section class="archive-modal" role="dialog" aria-modal="true" aria-labelledby="archive-modal-title"><header class="archive-modal-head"><span>离线镜像 / 系统记录</span><b>03:44</b></header><div class="archive-modal-body"><h2 id="archive-modal-title">' + esc(evt.modalTitle) + '</h2><p>' + esc(evt.modalText) + '</p><p class="modal-stamp">' + esc(evt.modalStamp) + '</p></div><div class="archive-modal-actions"><button type="button" data-event-close>保存并关闭</button></div></section>';
     node.appendChild(backdrop);
     var close = function () { clearRoot(); };
     backdrop.querySelector("[data-event-close]").addEventListener("click", close);
@@ -193,6 +221,7 @@
   function boot() {
     if (booted) return;
     booted = true;
+    migratePms();
     updateRail(); updateEventLog(); schedule();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
