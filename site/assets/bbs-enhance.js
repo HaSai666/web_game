@@ -34,7 +34,9 @@
   function htmlText(html) {
     var box = document.createElement("div");
     box.innerHTML = html || "";
-    return (box.textContent || box.innerText || "").replace(/\s+/g, " ").trim();
+    return (box.textContent || box.innerText || "")
+      .replace(/\[\[([^\]]+)\]\]/g, "$1")
+      .replace(/\s+/g, " ").trim();
   }
   function allThreads() {
     var seen = {}, out = [];
@@ -64,6 +66,82 @@
   function threadFromHash() {
     var p = hashParts();
     return p[0] === "thread" ? p[1] : "";
+  }
+
+  /* A real old forum often carried a small "related posts" trail at the
+     bottom of a thread.  It gives the reader a way to follow conversations
+     without turning the archive into a visible quest list. */
+  var RELATED = {
+    t_main: [
+      ["f_preflight", "同一晚的编辑记录"],
+      ["f_audio_log", "录音帖的后续回复"],
+      ["f_night_presence", "闲聊版的在线记录"]
+    ],
+    t_return: [
+      ["t_ip", "回帖地址考据"],
+      ["f_reply_shadow", "作者标点比对"],
+      ["f_phone_line", "一通没有接通的电话"]
+    ],
+    t_recovered: [
+      ["f_chair_back", "底片背面的补记"],
+      ["f_room_rental", "南城房间的旧帖"]
+    ],
+    f_audio_log: [
+      ["f_preflight", "直播前的编辑记录"],
+      ["f_chair_back", "同一编号的底片"]
+    ],
+    f_door_watch: [
+      ["f_room_rental", "四号楼的旧租客"],
+      ["f_phone_line", "值班电话记录"]
+    ],
+    f_reply_shadow: [
+      ["f_editor_cache", "自动保存的半句话"],
+      ["t_log3", "第37楼的残留字段"]
+    ],
+    f_phone_line: [
+      ["f_door_watch", "南城四号楼的敲门帖"],
+      ["t_main", "直播主帖"]
+    ],
+    f_editor_cache: [
+      ["f_reply_shadow", "谁在替右灯回帖"],
+      ["t_eleven", "补遗页的最后一行"]
+    ],
+    f_rightlamp_note: [
+      ["t_main", "右灯后来的直播主帖"],
+      ["t_granny", "他讲过的守灵夜"],
+      ["f_phone_line", "断更夜的值班电话"]
+    ]
+  };
+
+  function relatedThread(id) {
+    var item = threadById(id);
+    return item && !item.final ? item : null;
+  }
+
+  function decorateRelated(tid) {
+    var view = document.getElementById("view");
+    if (!view || tid === "t_37" || view.querySelector(".related-records")) return;
+    var links = RELATED[tid] || [];
+    if (!links.length) return;
+    var panel = document.createElement("aside");
+    panel.className = "related-records";
+    panel.setAttribute("aria-label", "相关记录");
+    var html = '<div class="related-records-head"><span>相关记录</span><small>引用链仍在</small></div><div class="related-records-list">';
+    var count = 0;
+    for (var i = 0; i < links.length; i++) {
+      var target = relatedThread(links[i][0]);
+      if (!target) continue;
+      var readState = hasSeen(target.id) ? "已读" : "未读";
+      html += '<a class="related-record" href="#/thread/' + esc(target.id) + '">' +
+        '<span class="related-record-copy"><b>' + esc(links[i][1]) + '</b><em>' + esc(target.title) + '</em></span>' +
+        '<span class="related-record-meta">' + readState + '<br>' + esc(target.time || "时间缺失") + '</span></a>';
+      count++;
+    }
+    if (!count) return;
+    panel.innerHTML = html + "</div>";
+    var box = view.querySelector(".reply-box");
+    if (box && box.parentNode) box.parentNode.insertBefore(panel, box.nextSibling);
+    else view.appendChild(panel);
   }
   function docCount() {
     var docs = (window.BBS && BBS.docs) || [], v = visited(), n = 0;
@@ -218,7 +296,8 @@
       posts[i].setAttribute("data-floor", num.replace(/\D/g, ""));
       var uid = posts[i].querySelector(".p-uid");
       var links = posts[i].querySelector(".p-links");
-      if (links) links.innerHTML = '<button type="button" class="quote-action" data-quote-user="' + esc(uid ? uid.textContent : "网友") + '">引用</button><button type="button" class="reply-action">回复</button>';
+      if (links && tid !== "t_37") links.innerHTML = '<button type="button" class="quote-action" data-quote-user="' + esc(uid ? uid.textContent : "网友") + '">引用</button><button type="button" class="reply-action">回复</button>';
+      if (links && tid === "t_37") links.textContent = "终局记录";
       var body = posts[i].querySelector(".p-cont");
       if (body && /到我了|五\?|第五声|不要数/.test(body.textContent || "")) posts[i].classList.add("threshold-post");
       posts[i].setAttribute("data-post-enhanced", "1");
@@ -319,13 +398,20 @@
   function rememberThread(tid) {
     if (!tid) return;
     var t = threadById(tid), reads = 0;
+    var head = document.querySelector("#view .thread-head-bar .stamp");
+    var alreadyStamped = head && head.getAttribute("data-read-stamped") === "1";
     try {
       localStorage.setItem("bbs_last_thread", t ? t.title : tid);
-      reads = parseInt(localStorage.getItem("bbs_reads_" + tid) || "0", 10) + 1;
-      localStorage.setItem("bbs_reads_" + tid, String(reads));
+      reads = parseInt(localStorage.getItem("bbs_reads_" + tid) || "0", 10);
+      if (!alreadyStamped) {
+        reads += 1;
+        localStorage.setItem("bbs_reads_" + tid, String(reads));
+      }
     } catch (e) {}
-    var head = document.querySelector("#view .thread-head-bar .stamp");
-    if (head && reads) head.textContent += "　读取 " + reads;
+    if (head && reads && !alreadyStamped) {
+      head.textContent += "　读取 " + reads;
+      head.setAttribute("data-read-stamped", "1");
+    }
   }
   function enhance(force) {
     var view = document.getElementById("view");
@@ -341,6 +427,7 @@
       decorateBoard();
     } else if (kind === "thread") {
       var tid = p[1] || ""; rememberThread(tid); decorateThread(tid);
+      decorateRelated(tid);
     } else if (kind === "pm") {
       decoratePM();
     } else if (kind === "login") {

@@ -130,8 +130,13 @@ function setTier(t) {
   document.body.setAttribute("data-atmosphere-tier", String(Math.min(3, next)));
 }
 function renderChrome(crumbsHtml) {
+  var endingLink = "";
+  try {
+    var endingSeen = JSON.parse(localStorage.getItem("bbs_endings_seen") || "[]");
+    if (Array.isArray(endingSeen) && endingSeen.length) endingLink = ' | <a href="#/ending">结局档案</a>';
+  } catch (e) {}
   document.getElementById("nav-links").innerHTML =
-    '<a href="#/">论坛首页</a> | <a href="#/board/guaitan">怪谈版</a> | <a href="#/board/xianliao">闲聊版</a> | <a href="#/board/zhanwu">站务版</a> | 排行榜';
+    '<a href="#/">论坛首页</a> | <a href="#/board/guaitan">怪谈版</a> | <a href="#/board/xianliao">闲聊版</a> | <a href="#/board/zhanwu">站务版</a> | 排行榜' + endingLink;
   document.getElementById("online-num").textContent = onlineNum();
   document.getElementById("crumbs").innerHTML = '<a href="#/">莲灯夜话</a> ' + crumbsHtml;
   var s = session();
@@ -298,12 +303,22 @@ function viewThread(tid) {
   for (i = 0; i < t.posts.length; i++) html += postHtml(t.posts[i], t.tier);
   for (i = 0; i < myFloors.length; i++) if (myFloors[i].tid === t.id) html += postHtml(myFloors[i], t.tier);
 
-  /* 回复框 */
+  /* 回复框。终局帖不再把玩家留在输入框里，结局章节直接接管页面。 */
   var unlocked = BBS.docs.every(function (d) { return getVisited().indexOf(d) !== -1; });
-  html += '<div class="reply-box"><b>快速回复</b>　<span class="reply-note">（本论坛已于2012年关闭）</span>' +
-    '<textarea id="reply-text"></textarea><br><button id="reply-btn">发表回复</button></div>';
-  if (t.id === "t_37" && window.ArchiveEndings) html += window.ArchiveEndings.render(window.ArchiveEndings.pick());
+  var isFinalThread = t.id === "t_37";
+  if (!isFinalThread) {
+    html += '<div class="reply-box"><b>快速回复</b>　<span class="reply-note">（本论坛已于2012年关闭）</span>' +
+      '<textarea id="reply-text"></textarea><br><button id="reply-btn">发表回复</button></div>';
+  }
+  var endingId = "";
+  if (t.id === "t_37" && window.ArchiveEndings) {
+    endingId = window.ArchiveEndings.pick();
+    html += window.ArchiveEndings.render(endingId);
+  }
   document.getElementById("view").innerHTML = html;
+  if (endingId && window.ArchiveEndings && window.ArchiveEndings.announce) {
+    window.ArchiveEndings.announce(endingId);
+  }
 
   /* 第37楼按钮 */
   var btn = document.getElementById("next-floor-btn");
@@ -314,7 +329,9 @@ function viewThread(tid) {
     btn.href = "#/thread/t_37";
   }
 
-  document.getElementById("reply-btn").addEventListener("click", function () {
+  var replyButton = document.getElementById("reply-btn");
+  if (!replyButton) return;
+  replyButton.addEventListener("click", function () {
     var txt = document.getElementById("reply-text").value;
     if (!txt || !txt.replace(/^\s+|\s+$/g, "")) return;
     if (unlocked && t.id === "t_main") {
@@ -504,15 +521,68 @@ function viewSearch(q) {
 function viewEnding(id) {
   var endings = window.ArchiveEndings;
   if (!endings) { viewIndex(); return; }
-  var chosen = endings.valid(id) ? id : endings.pick();
   setTier(3);
-  renderChrome("» 读取记录");
+  if (!id) {
+    document.title = "结局档案 · 莲灯夜话";
+    renderChrome("» 结局档案");
+    document.getElementById("view").innerHTML = endings.renderGallery();
+    return;
+  }
+  var chosen = endings.valid(id) ? id : endings.pick();
+  document.title = "结局记录 · " + endings.list[chosen].title;
+  renderChrome("» 结局档案 » " + esc(endings.list[chosen].label));
   document.getElementById("view").innerHTML = endings.render(chosen);
+}
+
+/* Keep the ending gallery, but offer a real replay entry instead of asking
+   the author to open developer tools.  Only investigation state is cleared;
+   audio preference and already unlocked endings remain available. */
+function resetInvestigation() {
+  var keep = { "bbs_endings_seen": true, "dy_mute": true };
+  var remove = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key && key.indexOf("bbs_") === 0 && !keep[key]) remove.push(key);
+    }
+    for (i = 0; i < remove.length; i++) localStorage.removeItem(remove[i]);
+  } catch (e) {}
+  try { sessionStorage.clear(); } catch (e2) {}
+}
+function viewReplay() {
+  setTier(3);
+  renderChrome("» 重新开始调查");
+  document.getElementById("view").innerHTML =
+    '<section class="replay-panel" aria-labelledby="replay-title">' +
+      '<div class="ending-kicker">ARCHIVE RESET / NEW READER</div>' +
+      '<h2 id="replay-title">重新打开这份档案</h2>' +
+      '<p>新的调查会清除本次阅读、私信、选择和页面异常，让论坛回到第一次打开时的状态。已经读取过的结局不会被删除。</p>' +
+      '<div class="replay-record"><span>会清除</span><b>阅读痕迹 · 支线选择 · 事件记录 · 登录状态</b></div>' +
+      '<div class="replay-record"><span>会保留</span><b>结局档案 · 声音设置</b></div>' +
+      '<div class="replay-actions"><button type="button" id="replay-confirm">清除本次调查并重开</button><a href="#/ending">返回结局档案</a><a href="#/">先回论坛首页</a></div>' +
+    '</section>';
+  var button = document.getElementById("replay-confirm");
+  if (button) button.addEventListener("click", function () {
+    resetInvestigation();
+    /* Reset the live DOM before navigation as well. Otherwise the current
+       t3 class can be observed during the hash change and written back to
+       the persistent atmosphere key. */
+    try { localStorage.removeItem("bbs_atmosphere_tier"); } catch (e) {}
+    if (document.body) {
+      document.body.classList.remove("t2", "t3");
+      document.body.classList.add("t1");
+      document.body.setAttribute("data-atmosphere-tier", "1");
+    }
+    location.href = location.pathname + location.search + "#/";
+  });
 }
 function route() {
   var h = location.hash.replace(/^#\/?/, "");
   var parts = h.split("/");
   noteRouteTransition(h);
+  if (!(parts[0] === "thread" && parts[1] === "t_37") && parts[0] !== "ending") {
+    document.title = "莲灯夜话 - 只读档案";
+  }
   if (!h) return viewIndex();
   if (parts[0] === "board") return viewBoard(parts[1]);
   if (parts[0] === "thread") return viewThread(parts[1]);
@@ -526,6 +596,7 @@ function route() {
   }
   if (parts[0] === "recycle") return viewRecycle(parts[1]);
   if (parts[0] === "ending") return viewEnding(parts[1]);
+  if (parts[0] === "replay") return viewReplay();
   if (parts[0] === "search") return viewSearch(parts.slice(1).join("/"));
   if (parts[0] === "37") return viewThread("t_37");
   viewIndex();

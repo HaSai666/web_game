@@ -56,6 +56,96 @@
       modalTitle: "同步记录",
       modalText: "镜像收到一条没有对应页面的请求。它只留下了一个时间戳，随后又被同一时间覆盖。页面仍可读取。",
       modalStamp: "节点：B27-0344　最后同步：03:44　校验：未回传"
+    },
+    {
+      id: "phantom_typing_floor",
+      label: "回复记录 / 未注册用户",
+      kind: "modal",
+      tier: 2,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_audio_log") !== -1 && ctx.visited.indexOf("t_main") !== -1 && ctx.docs >= 3;
+      },
+      modalTitle: "回复框正在被使用",
+      modalText: "你没有点击回复框。镜像却记录到四次键盘输入，随后又收到第五次退格。草稿内容没有保存，作者字段为空。",
+      modalStamp: "页面：主帖　输入字节：4　访客：未登记"
+    },
+    {
+      id: "preflight_reserved_presence",
+      label: "在线记录 / 预留访客",
+      kind: "modal",
+      tier: 2,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_preflight") !== -1 && ctx.visited.indexOf("t_main") !== -1;
+      },
+      modalTitle: "在线人数被提前写入",
+      modalText: "主帖还没有开始直播，在线人数已经被记录为5。记录人字段为空，刷新后这条数据会被挪到页面底部。",
+      modalStamp: "快照：2005-02-27 02:39　在线：5　来源：未登记"
+    },
+    {
+      id: "hallway_knock_record",
+      label: "环境记录 / 三次敲击",
+      kind: "modal",
+      tier: 2,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_door_watch") !== -1 && (ctx.route === "t_main" || ctx.route === "f_rack_log");
+      },
+      modalTitle: "页面外收到三次敲击",
+      modalText: "声源不在当前音频轨道。第一次来自左声道，第二次来自右声道，第三次没有方向。镜像没有请求麦克风权限。",
+      modalStamp: "记录时间：03:44　来源：页面外"
+    },
+    {
+      id: "pm_unlit_punctuation",
+      label: "短消息 / 无灯",
+      kind: "pm",
+      tier: 3,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_reply_shadow") !== -1 && (ctx.visited.indexOf("t_log3") !== -1 || ctx.visited.indexOf("t_eleven") !== -1);
+      },
+      pm: {
+        id: "evt_pm_unlit_punctuation",
+        from: "无灯",
+        time: "2023-11-03 03:44",
+        title: "你也看见那个句号了吗",
+        html: "<p>我比对过你正在看的那一页。</p><p>右灯最后三层每一句都有句号，可他以前从来不用。不要继续学他的停顿。</p><p>它会等你写完一句，再替你补最后一个点。</p>"
+      },
+      toastTitle: "收到一封没有投递记录的短消息",
+      toastText: "发件人：无灯。收件箱时间比当前页面晚一分钟。"
+    },
+    {
+      id: "negative_returned_image",
+      label: "图像记录 / 底片回传",
+      kind: "modal",
+      tier: 3,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_chair_back") !== -1 && (ctx.visited.indexOf("t_eleven") !== -1 || ctx.route === "t_37");
+      },
+      modalTitle: "底片多出第五个受力点",
+      modalText: "图像分析没有识别到第五把椅子，但地面的灰尘留下了四条椅腿和一双鞋。鞋尖朝向拍照的人。",
+      modalStamp: "附件：A-0333　校验：与原图不一致"
+    },
+    {
+      id: "phone_line_recalled",
+      label: "线路记录 / 回拨",
+      kind: "modal",
+      tier: 3,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_phone_line") !== -1 && localStorage.getItem("bbs_choice_phone-return") === "call" && (ctx.route === "t_main" || ctx.route === "t_37");
+      },
+      modalTitle: "回拨请求已被接收",
+      modalText: "你没有授予麦克风权限。线路仍然留下了一段44秒的静默，末尾有一次像键盘的轻响。",
+      modalStamp: "入口：值班电话　状态：无人接听　回传：03:44"
+    },
+    {
+      id: "cache_cursor_waiting",
+      label: "编辑记录 / 光标",
+      kind: "modal",
+      tier: 3,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_editor_cache") !== -1 && localStorage.getItem("bbs_choice_cache-read") === "open" && (ctx.visited.indexOf("t_eleven") !== -1 || ctx.route === "t_37");
+      },
+      modalTitle: "编辑器没有关闭",
+      modalText: "缓存里的最后一个回车没有对应按键。你离开页面后，光标仍停在下一行，等待一个新的作者字段。",
+      modalStamp: "缓存段：A-0333　作者：空　校验：未完成"
     }
   ];
 
@@ -208,6 +298,10 @@
   }
   function evaluate() {
     updateRail(); updateEventLog();
+    /* A conclusion/replay page is a reading surface. Do not place a pending
+       forum alert over the ending chapter or its reset controls. */
+    var current = location.hash.replace(/^#\/?/, "");
+    if (current.indexOf("ending") === 0 || current.indexOf("replay") === 0 || current.indexOf("thread/t_37") === 0) return;
     var ctx = context();
     for (var i = 0; i < EVENTS.length; i++) {
       var evt = EVENTS[i];

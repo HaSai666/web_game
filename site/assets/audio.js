@@ -24,7 +24,7 @@
     var AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return false;
     try { ctx = new AC(); } catch (e) { return false; }
-    master = ctx.createGain(); master.gain.value = isMuted() ? 0 : .075; master.connect(ctx.destination);
+    master = ctx.createGain(); master.gain.value = isMuted() ? 0 : .09; master.connect(ctx.destination);
 
     var drone = ctx.createGain(); drone.gain.value = .32; gains.drone = drone;
     var low = ctx.createBiquadFilter(); low.type = "lowpass"; low.frequency.value = 145; low.Q.value = .5;
@@ -45,8 +45,8 @@
     tierNow = getTier();
     if (!ctx) return;
     var now = ctx.currentTime;
-    gains.music.gain.linearRampToValueAtTime(tierNow >= 2 ? .34 : 0, now + 1.8);
-    gains.heart.gain.linearRampToValueAtTime(tierNow >= 3 ? .16 : 0, now + 1.8);
+    gains.music.gain.linearRampToValueAtTime(tierNow >= 2 ? .40 : 0, now + 1.8);
+    gains.heart.gain.linearRampToValueAtTime(tierNow >= 3 ? .20 : 0, now + 1.8);
     gains.room.gain.linearRampToValueAtTime(tierNow >= 3 ? .07 : .055, now + 1.8);
   }
   function note(freq, volume) {
@@ -72,6 +72,19 @@
     o.frequency.setValueAtTime(54, at); o.frequency.exponentialRampToValueAtTime(34, at + .18);
     g.gain.setValueAtTime(.0001, at); g.gain.exponentialRampToValueAtTime(volume, at + .03); g.gain.exponentialRampToValueAtTime(.0001, at + .32);
     o.connect(g); g.connect(gains.heart); o.start(at); o.stop(at + .36);
+  }
+  function pulse(kind) {
+    if (!ctx || isMuted()) return;
+    var now = ctx.currentTime, deep = kind === "deep";
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = deep ? "sine" : "triangle";
+    o.frequency.setValueAtTime(deep ? 48 : 156, now);
+    o.frequency.exponentialRampToValueAtTime(deep ? 27 : 82, now + (deep ? .48 : .22));
+    g.gain.setValueAtTime(.0001, now);
+    g.gain.exponentialRampToValueAtTime(deep ? .18 : .055, now + .025);
+    g.gain.exponentialRampToValueAtTime(.0001, now + (deep ? .72 : .34));
+    o.connect(g); g.connect(deep ? gains.heart : gains.music);
+    o.start(now); o.stop(now + (deep ? .8 : .4));
   }
   function schedulePulse() {
     setTimeout(function () {
@@ -101,7 +114,7 @@
   function updateButton() {
     var btn = document.getElementById("audio-toggle");
     if (btn) btn.textContent = isMuted() ? "声音：关" : "声音：开";
-    if (master) master.gain.value = isMuted() ? 0 : .075;
+    if (master) master.gain.value = isMuted() ? 0 : .09;
   }
   document.addEventListener("DOMContentLoaded", function () {
     var btn = document.createElement("button"); btn.id = "audio-toggle"; btn.type = "button"; btn.setAttribute("aria-label", "切换环境音");
@@ -110,4 +123,5 @@
     window.addEventListener("pointerdown", start); window.addEventListener("keydown", start);
     window.addEventListener("hashchange", function () { setTimeout(applyTier, 60); });
   });
+  window.ArchiveAudio = { pulse: pulse, refresh: applyTier };
 })();
