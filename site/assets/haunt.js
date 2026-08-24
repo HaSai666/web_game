@@ -12,7 +12,7 @@
   var timer = null;
   var idleTimer = null;
   var observer = null;
-  var BRANCHES = ["f_preflight", "f_audio_log", "f_door_watch", "f_rack_log", "f_reply_shadow", "f_chair_back", "f_rightlamp_note", "f_phone_line", "f_editor_cache"];
+  var BRANCHES = ["f_preflight", "f_audio_log", "f_door_watch", "f_rack_log", "f_reply_shadow", "f_chair_back", "f_rightlamp_note", "f_phone_line", "f_editor_cache", "f_floorplan", "f_neighbor_tape", "f_lamp_debt", "f_mod_backup", "f_guestbook", "f_granny_letter"];
 
   function read(key, fallback) {
     try {
@@ -73,6 +73,12 @@
     document.body.classList.toggle("haunt-has-negative", has("f_chair_back"));
     document.body.classList.toggle("haunt-has-phone", has("f_phone_line"));
     document.body.classList.toggle("haunt-has-cache", has("f_editor_cache"));
+    document.body.classList.toggle("haunt-has-floorplan", has("f_floorplan"));
+    document.body.classList.toggle("haunt-has-neighbor", has("f_neighbor_tape"));
+    document.body.classList.toggle("haunt-has-lamp", has("f_lamp_debt"));
+    document.body.classList.toggle("haunt-has-backup", has("f_mod_backup"));
+    document.body.classList.toggle("haunt-has-guestbook", has("f_guestbook"));
+    document.body.classList.toggle("haunt-has-letter", has("f_granny_letter"));
   }
 
   function updateReflection() {
@@ -86,6 +92,12 @@
     else if (has("f_rack_log")) copy.textContent = "断电后，反射帧仍在更新";
     else if (has("f_phone_line")) copy.textContent = "接线台的空号还保持占线";
     else if (has("f_editor_cache")) copy.textContent = "光标停在一行没有发送的文字后面";
+    else if (has("f_floorplan")) copy.textContent = "墙后多出一条没有门的走廊";
+    else if (has("f_neighbor_tape")) copy.textContent = "第五下敲击没有对应的墙面";
+    else if (has("f_mod_backup")) copy.textContent = "离线盘的指示灯仍在闪";
+    else if (has("f_guestbook")) copy.textContent = "留言簿的光标没有回到开头";
+    else if (has("f_granny_letter")) copy.textContent = "信纸折痕里没有被灯照到的地方";
+    else if (has("f_lamp_debt")) copy.textContent = "灯线伸到画面以外，仍然通着电";
     else if (has("f_audio_log") || has("f_door_watch")) copy.textContent = "右下角的阴影没有对应光源";
     else copy.textContent = "当前帧没有可辨认的人影";
   }

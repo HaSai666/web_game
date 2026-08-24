@@ -146,6 +146,51 @@
       modalTitle: "编辑器没有关闭",
       modalText: "缓存里的最后一个回车没有对应按键。你离开页面后，光标仍停在下一行，等待一个新的作者字段。",
       modalStamp: "缓存段：A-0333　作者：空　校验：未完成"
+    },
+    {
+      id: "floorplan_unfolded",
+      label: "房间记录 / 折角",
+      kind: "modal",
+      tier: 3,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_floorplan") !== -1 && localStorage.getItem("bbs_choice_floorplan-fold") === "open" &&
+          (ctx.visited.indexOf("t_eleven") !== -1 || ctx.route === "t_37");
+      },
+      modalTitle: "平面图被重新折回",
+      modalText: "你离开南城房间记录后，扫描件自动恢复成原来的折角。展开过的走廊没有消失，只是被移到了页面外。",
+      modalStamp: "附件：南城-37　读取：03:44　折痕：新增一条"
+    },
+    {
+      id: "snapshot_restore_echo",
+      label: "站务备份 / 恢复",
+      kind: "modal",
+      tier: 3,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_mod_backup") !== -1 && localStorage.getItem("bbs_choice_mod-snapshot") === "restore" &&
+          (ctx.visited.indexOf("t_37") !== -1 || ctx.route === "t_37");
+      },
+      modalTitle: "旧快照先于页面完成",
+      modalText: "恢复请求还没有显示结果，系统记录已经把一个没有作者的感谢写进了缓存。你看到它时，主帖仍停在36楼。",
+      modalStamp: "节点：离线盘　写入：空作者　回传：03:44"
+    },
+    {
+      id: "guestbook_mark_replied",
+      label: "留言簿 / 时间戳",
+      kind: "pm",
+      tier: 3,
+      eligible: function (ctx) {
+        return ctx.visited.indexOf("f_guestbook") !== -1 && localStorage.getItem("bbs_choice_guestbook-mark") === "leave" &&
+          (ctx.visited.indexOf("t_eleven") !== -1 || ctx.route === "t_37");
+      },
+      pm: {
+        id: "evt_pm_guestbook_mark",
+        from: "系统",
+        time: "2023-11-03 03:44",
+        title: "留言已保存",
+        html: "<p>你留下的不是名字，是一个分钟。</p><p>旧索引把它归入了2005-02-27 03:44。若要删除，请回到写入它的页面。</p>"
+      },
+      toastTitle: "收到一封系统短消息",
+      toastText: "留言簿没有显示你的名字，但镜像把当前分钟放进了旧索引。"
     }
   ];
 

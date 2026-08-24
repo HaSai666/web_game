@@ -20,6 +20,14 @@ loadThreads(BBS.threads);
 loadThreads(window.BBS_STORY && BBS_STORY.threads);
 loadThreads(window.BBS_FILLER && BBS_FILLER.threads);
 loadThreads(window.BBS_EXPANSION && BBS_EXPANSION.threads);
+/* The deep branch data is loaded before this engine. Keep its main-thread
+   additions available even when an older cached data script ran before the
+   core global was exposed. */
+if (window.BBS_EXPANSION && Array.isArray(BBS_EXPANSION.deepMainPosts) && THREADS.t_main && !THREADS.t_main.__deepPostsApplied && !THREADS.t_main.__deepPostsAdded) {
+  THREADS.t_main.__deepPostsApplied = true;
+  THREADS.t_main.views = Math.max(THREADS.t_main.views || 0, 4388);
+  THREADS.t_main.posts = THREADS.t_main.posts.concat(BBS_EXPANSION.deepMainPosts);
+}
 if (window.BBS_STORY && BBS_STORY.pms) {
   for (var k in BBS_STORY.pms) {
     if (!BBS.pms[k]) BBS.pms[k] = { inbox: [], drafts: [] };

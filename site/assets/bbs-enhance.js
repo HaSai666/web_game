@@ -75,7 +75,9 @@
     t_main: [
       ["f_preflight", "同一晚的编辑记录"],
       ["f_audio_log", "录音帖的后续回复"],
-      ["f_night_presence", "闲聊版的在线记录"]
+      ["f_night_presence", "闲聊版的在线记录"],
+      ["f_floorplan", "南城房间的登记页"],
+      ["f_lamp_debt", "右灯借走的台灯"]
     ],
     t_return: [
       ["t_ip", "回帖地址考据"],
@@ -84,7 +86,8 @@
     ],
     t_recovered: [
       ["f_chair_back", "底片背面的补记"],
-      ["f_room_rental", "南城房间的旧帖"]
+      ["f_room_rental", "南城房间的旧帖"],
+      ["f_granny_letter", "信纸上的折痕"]
     ],
     f_audio_log: [
       ["f_preflight", "直播前的编辑记录"],
@@ -92,7 +95,38 @@
     ],
     f_door_watch: [
       ["f_room_rental", "四号楼的旧租客"],
-      ["f_phone_line", "值班电话记录"]
+      ["f_phone_line", "值班电话记录"],
+      ["f_floorplan", "租客登记的缺页"]
+    ],
+    f_floorplan: [
+      ["f_door_watch", "墙后敲门的记录"],
+      ["f_neighbor_tape", "隔墙人的录音"],
+      ["f_lamp_debt", "右灯借过的台灯"]
+    ],
+    f_neighbor_tape: [
+      ["f_audio_log", "A-0333 的另一份录音"],
+      ["t_news", "报纸里的邻居证词"],
+      ["f_floorplan", "四号楼的平面图"]
+    ],
+    f_lamp_debt: [
+      ["f_rightlamp_note", "右灯为什么需要在场"],
+      ["t_granny", "外婆的守灵夜"],
+      ["f_granny_letter", "信纸上的那句话"]
+    ],
+    f_mod_backup: [
+      ["t_notice", "服务器异常公告"],
+      ["f_rack_log", "机柜断电记录"],
+      ["t_log3", "第37楼的残留字段"]
+    ],
+    f_guestbook: [
+      ["f_reply_shadow", "替他回帖的人"],
+      ["f_editor_cache", "自动保存的半句话"],
+      ["t_eleven", "补遗页的最后一行"]
+    ],
+    f_granny_letter: [
+      ["t_granny", "外婆的守灵夜"],
+      ["f_chair_back", "底片背面的第五把椅子"],
+      ["f_rightlamp_note", "右灯留下的旧帖"]
     ],
     f_reply_shadow: [
       ["f_editor_cache", "自动保存的半句话"],
@@ -104,7 +138,8 @@
     ],
     f_editor_cache: [
       ["f_reply_shadow", "谁在替右灯回帖"],
-      ["t_eleven", "补遗页的最后一行"]
+      ["t_eleven", "补遗页的最后一行"],
+      ["f_guestbook", "存档留言簿"]
     ],
     f_rightlamp_note: [
       ["t_main", "右灯后来的直播主帖"],

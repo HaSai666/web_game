@@ -198,6 +198,27 @@
       var cacheChoice = localStorage.getItem("bbs_choice_cache-read") || "";
       traces.push(["缓存支线", cacheChoice === "open" ? "你展开了自动保存的末行。多出的回车没有对应的按键。" : "你没有展开缓存，但光标停留的位置被镜像保留了下来。"]);
     }
+    if (has("f_floorplan")) {
+      var planChoice = localStorage.getItem("bbs_choice_floorplan-fold") || "";
+      traces.push(["房间支线", planChoice === "open" ? "你摊平了南城的折角。平面图多出一条不通向任何房间的走廊。" : planChoice === "close" ? "你没有摊平那张图，封住的门牌仍留在纸页背面。" : "你读过南城租客登记里缺失的一页。"]);
+    }
+    if (has("f_neighbor_tape")) {
+      var tapeChoice = localStorage.getItem("bbs_choice_neighbor-tape") || "";
+      traces.push(["证人支线", tapeChoice === "listen" ? "你播放了隔墙录音。第五下敲击来自房间正中间。" : tapeChoice === "transcript" ? "你只看了转录，空行却被索引成了一条新的记录。" : "你读过那晚的邻居证词，但没有播放原带。"]);
+    }
+    if (has("f_lamp_debt")) traces.push(["台灯支线", "右灯借来的灯在他失踪后自己回到门口，灯泡仍然发热。"]);
+    if (has("f_mod_backup")) {
+      var backupChoice = localStorage.getItem("bbs_choice_mod-snapshot") || "";
+      traces.push(["备份支线", backupChoice === "restore" ? "你恢复了旧快照，空作者字段旁多出一行没有来源的感谢。" : backupChoice === "seal" ? "你继续封存快照，封条日期比当前年份早了十八年。" : "你看过青灯留下的两份备份和同一个空光标。"]);
+    }
+    if (has("f_guestbook")) {
+      var guestChoice = localStorage.getItem("bbs_choice_guestbook-mark") || "";
+      traces.push(["留言支线", guestChoice === "leave" ? "你留下了一个时间戳，镜像没有显示名字，却记住了分钟。" : guestChoice === "erase" ? "你清空了留言，浏览器历史仍保留一条没有标题的记录。" : "你读过存档留言簿里关于空白输入框的讨论。"]);
+    }
+    if (has("f_granny_letter")) {
+      var letterChoice = localStorage.getItem("bbs_choice_granny-letter") || "";
+      traces.push(["家书支线", letterChoice === "unfold" ? "你摊平了外婆的信，折痕下面没有字，只有一块没有被灯照到的纸。" : letterChoice === "fold" ? "你把信放回信封，内侧留下了一圈温热的灰。" : "你读过那封没有写完的家书。"]);
+    }
     return traces;
   }
   function renderBranchTraces() {
