@@ -1,0 +1,1693 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#111714">
+  <link rel="icon" href="data:,">
+  <title>《断更事件》作者通关手册</title>
+  <style>
+    :root {
+      --page: #111714;
+      --panel: #151d19;
+      --panel-strong: #1a231f;
+      --panel-soft: #18201d;
+      --ink: #d7ded8;
+      --ink-strong: #eef1ed;
+      --muted: #96a39a;
+      --faint: #66736b;
+      --line: #354039;
+      --line-soft: #28332d;
+      --accent: #b35d52;
+      --accent-strong: #d07a6e;
+      --accent-soft: rgba(179, 93, 82, .13);
+      --focus: #d07a6e;
+      --sans: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      --mono: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sidebar: 282px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 24px;
+      background: var(--page);
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100dvh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 82% 4%, rgba(73, 91, 80, .14), transparent 32rem),
+        linear-gradient(180deg, #121915 0%, var(--page) 28rem, #101512 100%);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.72;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      position: fixed;
+      z-index: 20;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      opacity: .12;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(224, 233, 225, .35) 0 0.5px, transparent .7px),
+        radial-gradient(circle at 70% 60%, rgba(7, 10, 8, .85) 0 0.6px, transparent .8px);
+      background-size: 4px 4px, 5px 5px;
+      mix-blend-mode: soft-light;
+    }
+
+    a {
+      color: var(--ink-strong);
+      text-decoration-color: rgba(208, 122, 110, .62);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    a:hover {
+      color: var(--accent-strong);
+      text-decoration-color: currentColor;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      color: var(--ink);
+      background: var(--panel-strong);
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      color: var(--ink-strong);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    code,
+    kbd,
+    .mono {
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    code,
+    kbd {
+      border: 1px solid var(--line-soft);
+      border-radius: 2px;
+      padding: .12em .38em;
+      color: #cbd4cd;
+      background: #101612;
+      overflow-wrap: anywhere;
+    }
+
+    strong {
+      color: var(--ink-strong);
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 100;
+      top: 10px;
+      left: 10px;
+      padding: 8px 12px;
+      color: var(--ink-strong);
+      background: var(--accent);
+      transform: translateY(-160%);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+      width: min(1480px, 100%);
+      min-height: 100dvh;
+      margin: 0 auto;
+      border-right: 1px solid var(--line-soft);
+      border-left: 1px solid var(--line-soft);
+      background: rgba(17, 23, 20, .82);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100dvh;
+      padding: 30px 24px 24px;
+      border-right: 1px solid var(--line);
+      background: rgba(18, 25, 21, .96);
+      overflow-y: auto;
+    }
+
+    .site-mark {
+      margin-bottom: 27px;
+    }
+
+    .site-mark span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--accent-strong);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .13em;
+    }
+
+    .site-mark b {
+      display: block;
+      color: var(--ink-strong);
+      font-size: 21px;
+      font-weight: 680;
+      letter-spacing: .02em;
+    }
+
+    .open-game {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 44px;
+      margin-bottom: 26px;
+      padding: 9px 12px;
+      border: 1px solid var(--accent);
+      border-radius: 2px;
+      color: var(--ink-strong);
+      background: var(--accent-soft);
+      text-decoration: none;
+    }
+
+    .open-game::after {
+      content: "↗";
+      color: var(--accent-strong);
+      font-family: var(--mono);
+    }
+
+    .toc-title {
+      margin: 0 0 9px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+    }
+
+    .toc {
+      display: grid;
+      gap: 2px;
+    }
+
+    .toc a {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      min-height: 38px;
+      align-items: center;
+      border-left: 2px solid transparent;
+      padding: 5px 8px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .toc a:hover,
+    .toc a:focus-visible {
+      border-left-color: var(--accent);
+      color: var(--ink-strong);
+      background: var(--accent-soft);
+    }
+
+    .toc a span {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .side-note {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .side-note strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    main {
+      min-width: 0;
+      padding: 0 clamp(28px, 5vw, 82px) 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(260px, .72fr);
+      gap: clamp(30px, 5vw, 72px);
+      align-items: end;
+      min-height: min(680px, 92dvh);
+      padding: 58px 0 48px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .spoiler {
+      display: inline-block;
+      margin-bottom: 22px;
+      border-left: 3px solid var(--accent);
+      padding: 2px 0 2px 10px;
+      color: var(--accent-strong);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin-bottom: 19px;
+      color: var(--ink-strong);
+      font-size: clamp(40px, 6vw, 78px);
+      font-weight: 720;
+      letter-spacing: -.045em;
+      line-height: 1.04;
+    }
+
+    .hero-copy {
+      max-width: 720px;
+      margin-bottom: 24px;
+      color: var(--muted);
+      font-size: clamp(16px, 1.7vw, 20px);
+      line-height: 1.65;
+    }
+
+    .critical-note {
+      max-width: 720px;
+      margin: 0;
+      border-left: 3px solid var(--accent);
+      padding: 13px 16px;
+      color: var(--ink);
+      background: var(--accent-soft);
+    }
+
+    .hero-facts {
+      margin: 0;
+      border-top: 2px solid var(--accent);
+      background: rgba(21, 29, 25, .72);
+    }
+
+    .hero-facts div {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-facts dt {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .hero-facts dd {
+      margin: 0;
+      color: var(--ink-strong);
+      font-weight: 620;
+    }
+
+    .section {
+      padding: 64px 0 18px;
+      scroll-margin-top: 20px;
+    }
+
+    .section + .section {
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-heading {
+      max-width: 820px;
+      margin-bottom: 30px;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 12px;
+      color: var(--ink-strong);
+      font-size: clamp(28px, 4vw, 46px);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      line-height: 1.16;
+    }
+
+    .section-heading p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .section:target .section-heading h2 {
+      text-decoration: underline;
+      text-decoration-color: var(--accent);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 8px;
+    }
+
+    .route-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 16px;
+      padding: 11px 14px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(21, 29, 25, .56);
+    }
+
+    .route-toolbar strong {
+      color: var(--accent-strong);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .route-toolbar button {
+      padding: 5px 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .route-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-top: 1px solid var(--line);
+    }
+
+    .route-step {
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1fr) minmax(150px, auto);
+      gap: 18px;
+      align-items: start;
+      padding: 21px 0;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .route-check {
+      position: relative;
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .route-check input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .route-check:has(input:checked) {
+      border-color: var(--accent);
+      color: var(--ink-strong);
+      background: var(--accent-soft);
+    }
+
+    .route-check:has(input:checked) span {
+      text-decoration: line-through;
+      text-decoration-color: var(--accent);
+    }
+
+    .route-copy h3 {
+      margin-bottom: 7px;
+      color: var(--ink-strong);
+      font-size: 18px;
+      font-weight: 670;
+      line-height: 1.45;
+    }
+
+    .route-copy p {
+      max-width: 780px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    .route-copy p:last-child {
+      margin-bottom: 0;
+    }
+
+    .success-sign {
+      color: #b7c2ba !important;
+      font-size: 13px;
+    }
+
+    .success-sign::before {
+      content: "验收：";
+      color: var(--accent-strong);
+      font-weight: 650;
+    }
+
+    .thread-link {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      padding: 7px 11px;
+      color: var(--ink-strong);
+      background: var(--panel-soft);
+      text-align: center;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .thread-link:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .thread-link::after {
+      margin-left: 8px;
+      content: "↗";
+      color: var(--accent-strong);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .callout {
+      margin: 24px 0;
+      border-left: 3px solid var(--accent);
+      padding: 15px 17px;
+      color: var(--muted);
+      background: var(--accent-soft);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--ink-strong);
+    }
+
+    details {
+      margin-top: 22px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(21, 29, 25, .5);
+    }
+
+    summary {
+      padding: 13px 16px;
+      color: var(--ink-strong);
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    details > div {
+      padding: 2px 16px 16px;
+      color: var(--muted);
+    }
+
+    .evidence-map {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin: 24px 0 30px;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .evidence-map article {
+      min-width: 0;
+      padding: 16px 14px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(21, 29, 25, .52);
+    }
+
+    .evidence-map h3 {
+      margin-bottom: 8px;
+      color: var(--accent-strong);
+      font-size: 15px;
+    }
+
+    .evidence-map p {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .evidence-map code {
+      display: inline-block;
+      font-size: 11px;
+    }
+
+    .plain-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      margin: 0;
+      padding: 1px;
+      background: var(--line);
+      list-style: none;
+    }
+
+    .plain-list li {
+      padding: 15px 17px;
+      color: var(--muted);
+      background: var(--panel);
+    }
+
+    .plain-list strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .matrix {
+      width: 100%;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .matrix-row {
+      display: grid;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .ending-matrix .matrix-row {
+      grid-template-columns: 1.05fr 1fr 1.15fr 1.1fr 1.45fr;
+    }
+
+    .account-matrix .matrix-row {
+      grid-template-columns: 1.1fr 1fr 1fr 2fr;
+    }
+
+    .matrix-row > * {
+      min-width: 0;
+      padding: 13px 14px;
+      border-right: 1px solid var(--line);
+      overflow-wrap: anywhere;
+    }
+
+    .matrix-head {
+      color: var(--faint);
+      background: #101612;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+
+    .matrix-body {
+      color: var(--muted);
+      background: rgba(21, 29, 25, .58);
+    }
+
+    .matrix-body:hover {
+      background: rgba(26, 35, 31, .84);
+    }
+
+    .matrix-body .result {
+      color: var(--ink-strong);
+      font-weight: 670;
+    }
+
+    .matrix-body .result span {
+      display: block;
+      margin-top: 2px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .ending-warning {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .ending-warning div {
+      padding: 15px 17px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(21, 29, 25, .45);
+    }
+
+    .ending-warning strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .story-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: story;
+    }
+
+    .story-list > li {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 20px;
+      padding: 25px 0;
+      border-bottom: 1px solid var(--line-soft);
+      counter-increment: story;
+    }
+
+    .story-list > li::before {
+      content: counter(story, decimal-leading-zero);
+      color: var(--accent-strong);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .story-list h3 {
+      margin-bottom: 6px;
+      color: var(--ink-strong);
+      font-size: 20px;
+    }
+
+    .story-list p {
+      margin-bottom: 12px;
+      color: var(--muted);
+    }
+
+    .record-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+    }
+
+    .record-links a {
+      color: #cbd3cd;
+      font-size: 13px;
+    }
+
+    .record-links code {
+      margin-left: 4px;
+      color: var(--faint);
+      font-size: 10px;
+    }
+
+    .truth-block {
+      display: grid;
+      grid-template-columns: minmax(0, .8fr) minmax(0, 1.3fr);
+      gap: 36px;
+      margin-top: 35px;
+      padding: 27px 0;
+      border-top: 2px solid var(--accent);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .truth-block h3 {
+      color: var(--ink-strong);
+      font-size: 25px;
+      line-height: 1.35;
+    }
+
+    .truth-block ol {
+      margin: 0;
+      padding-left: 21px;
+      color: var(--muted);
+    }
+
+    .truth-block li + li {
+      margin-top: 10px;
+    }
+
+    .account-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 15px;
+      margin-top: 20px;
+    }
+
+    .account-actions a {
+      font-size: 13px;
+    }
+
+    .diagnostic {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .diagnostic article {
+      padding: 21px;
+      background: var(--panel);
+    }
+
+    .diagnostic h3 {
+      margin-bottom: 9px;
+      color: var(--ink-strong);
+      font-size: 17px;
+    }
+
+    .diagnostic p,
+    .diagnostic ol,
+    .diagnostic ul {
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .diagnostic ol,
+    .diagnostic ul {
+      padding-left: 20px;
+    }
+
+    .diagnostic li + li {
+      margin-top: 6px;
+    }
+
+    .qa-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 24px;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .qa-strip div {
+      padding: 15px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .qa-strip strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--accent-strong);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    footer {
+      margin-top: 66px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    footer p {
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 1120px) {
+      :root {
+        --sidebar: 242px;
+      }
+
+      main {
+        padding-right: 34px;
+        padding-left: 34px;
+      }
+
+      .evidence-map {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .qa-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 860px) {
+      .shell {
+        display: block;
+        border: 0;
+      }
+
+      .sidebar {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        height: auto;
+        padding: 18px 20px 14px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        overflow: visible;
+      }
+
+      .site-mark {
+        margin-bottom: 14px;
+      }
+
+      .site-mark b {
+        font-size: 18px;
+      }
+
+      .open-game {
+        margin-bottom: 14px;
+      }
+
+      .toc-title,
+      .side-note {
+        display: none;
+      }
+
+      .toc {
+        display: flex;
+        gap: 4px;
+        padding-bottom: 4px;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+      }
+
+      .toc a {
+        display: block;
+        min-width: max-content;
+        min-height: 34px;
+        border-left: 0;
+        border-bottom: 2px solid transparent;
+        padding: 5px 10px;
+      }
+
+      .toc a:hover,
+      .toc a:focus-visible {
+        border-bottom-color: var(--accent);
+      }
+
+      .toc a span {
+        margin-right: 5px;
+      }
+
+      main {
+        padding: 0 24px 58px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding: 48px 0 40px;
+      }
+
+      .hero-facts {
+        max-width: 560px;
+      }
+
+      .evidence-map {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .ending-matrix .matrix-row,
+      .account-matrix .matrix-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .matrix-head {
+        display: none;
+      }
+
+      .matrix-body {
+        padding: 9px 0;
+      }
+
+      .matrix-row > * {
+        border-right: 0;
+        padding: 7px 13px;
+      }
+
+      .matrix-row > *::before {
+        display: block;
+        margin-bottom: 2px;
+        content: attr(data-label);
+        color: var(--faint);
+        font-family: var(--mono);
+        font-size: 10px;
+      }
+
+      .truth-block {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      body {
+        font-size: 14px;
+      }
+
+      .sidebar {
+        padding-right: 16px;
+        padding-left: 16px;
+      }
+
+      main {
+        padding-right: 16px;
+        padding-left: 16px;
+      }
+
+      h1 {
+        font-size: clamp(37px, 12vw, 54px);
+      }
+
+      .section {
+        padding-top: 48px;
+      }
+
+      .route-step {
+        grid-template-columns: 48px minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .thread-link {
+        grid-column: 2;
+        justify-self: start;
+        white-space: normal;
+      }
+
+      .evidence-map,
+      .plain-list,
+      .ending-warning,
+      .diagnostic,
+      .qa-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .ending-matrix .matrix-row,
+      .account-matrix .matrix-row {
+        grid-template-columns: 1fr;
+      }
+
+      .story-list > li {
+        grid-template-columns: 38px minmax(0, 1fr);
+        gap: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    @media print {
+      :root {
+        --page: #fdfdfc;
+        --panel: #fdfdfc;
+        --panel-strong: #f1f1f1;
+        --panel-soft: #f6f6f6;
+        --ink: #222222;
+        --ink-strong: #111111;
+        --muted: #444444;
+        --faint: #666666;
+        --line: #888888;
+        --line-soft: #c2c2c2;
+        --accent: #7f3029;
+        --accent-strong: #7f3029;
+        --accent-soft: #f1e4e2;
+      }
+
+      body {
+        color: var(--ink);
+        background: #fdfdfc;
+        font-size: 10.5pt;
+      }
+
+      body::before,
+      .sidebar,
+      .route-toolbar button {
+        display: none;
+      }
+
+      .shell {
+        display: block;
+        border: 0;
+      }
+
+      main {
+        padding: 0;
+      }
+
+      .hero {
+        min-height: auto;
+        padding: 0 0 26px;
+      }
+
+      .section {
+        padding-top: 30px;
+        break-inside: avoid-page;
+      }
+
+      a {
+        color: var(--ink-strong);
+      }
+
+      .thread-link::after,
+      .open-game::after {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#content">跳到正文</a>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="攻略目录">
+      <div class="site-mark">
+        <span>完全剧透</span>
+        <b>作者通关手册</b>
+      </div>
+
+      <a class="open-game" href="../site/bbs/index.html#/" target="_blank" rel="noopener">打开论坛游戏</a>
+
+      <p class="toc-title">目录</p>
+      <nav class="toc">
+        <a href="#fast"><span>01</span>最短必通路线</a>
+        <a href="#unlock"><span>02</span>门禁原理</a>
+        <a href="#endings"><span>03</span>五结局选项</a>
+        <a href="#story"><span>04</span>完整剧情顺序</a>
+        <a href="#accounts"><span>05</span>账号与隐藏区</a>
+        <a href="#stuck"><span>06</span>卡关排查</a>
+      </nav>
+
+      <div class="side-note">
+        <strong>这份文档不会操作游戏存档</strong>
+        勾选框只用于手工核对。真正进度仍保存在论坛页面自己的浏览器存储中。
+      </div>
+    </aside>
+
+    <main id="content">
+      <header class="hero" id="top">
+        <div>
+          <span class="spoiler">完全剧透 / 可直接照做</span>
+          <h1>《断更事件》通关秘籍</h1>
+          <p class="hero-copy">给作者测试用的明确路线。从零进度到第37楼，再到五个真实结局，每一步都附有可直接打开的入口和成功标志。</p>
+          <p class="critical-note"><strong>最容易卡住的原因：</strong>搜索结果里看见标题不算读过。必须点进主题正文，游戏才会记录对应证据。</p>
+        </div>
+
+        <dl class="hero-facts">
+          <div><dt>稳定路线</dt><dd>3个账号 + 1篇房间记录 + 主帖</dd></div>
+          <div><dt>终局门禁</dt><dd>3份私密记录 + 5类证据 + 第五声</dd></div>
+          <div><dt>终局操作</dt><dd>连续3次决定，再读取结局</dd></div>
+          <div><dt>可收集</dt><dd>5个结局，档案永久保留</dd></div>
+        </dl>
+      </header>
+
+      <section class="section" id="fast">
+        <div class="section-heading">
+          <h2>最短必通路线</h2>
+          <p>第一次验证建议用无痕窗口。新版主线必须实际破解三个账号；只读公开帖子已经无法绕过私信、草稿与回收站。</p>
+        </div>
+
+        <div class="route-toolbar">
+          <span>手工核对进度：<strong id="route-count" aria-live="polite">0 / 11</strong></span>
+          <button type="button" id="route-reset">清空勾选</button>
+        </div>
+
+        <ol class="route-list">
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已阅读2004年旧版规">
+              <span>01</span>
+            </label>
+            <div class="route-copy">
+              <h3>先读2004年旧版规，找第一组密码</h3>
+              <p>主题 ID：<code>t_rules</code>。末尾写着新注册会员使用六位数字初始密码；小刀的账号没有修改记录。</p>
+              <p class="success-sign">正文末尾能看到“新注册会员初始密码为123456，请尽快修改”。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/thread/t_rules" target="_blank" rel="noopener">打开版规</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已读取小刀收件箱中的别看">
+              <span>02</span>
+            </label>
+            <div class="route-copy">
+              <h3>登录“唯物主义小刀”，读取《别看》</h3>
+              <p>用户名 <code>唯物主义小刀</code>，密码 <code>123456</code>。进入短消息后点右灯03:33发来的《别看》，不要只停在收件箱列表。</p>
+              <p class="success-sign">正文说提灯人的账号会在右灯最后在线的那一分钟注册；论坛首次出现轻微时间重影。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/login" target="_blank" rel="noopener">登录小刀</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已推导提灯人密码">
+              <span>03</span>
+            </label>
+            <div class="route-copy">
+              <h3>比对右灯与提灯人的资料页</h3>
+              <p>右灯最后在线是 <code>2005-02-27 03:44</code>；提灯人同一分钟注册，签名写“密码是那一天的时刻”。取时和分并去掉冒号，得到 <code>0344</code>。</p>
+              <p class="success-sign">提灯人资料页显示“短消息草稿：3篇（登录后可见）”。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/user/%E6%8F%90%E7%81%AF%E4%BA%BA" target="_blank" rel="noopener">查看提灯人</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已读取提灯人草稿交代中">
+              <span>04</span>
+            </label>
+            <div class="route-copy">
+              <h3>退出小刀，登录“提灯人”，读取《交代（中）》</h3>
+              <p>用户名 <code>提灯人</code>，密码 <code>0344</code>。进入短消息 → 草稿箱，真正打开第二份草稿 <code>draft2</code>。</p>
+              <p class="success-sign">末尾未发送附注说青灯沿用2012年当值机柜编号，老后台会吞掉横杠；论坛进入第二层脏橄榄色与轻微错位。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/login" target="_blank" rel="noopener">登录提灯人</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已读取机房维护通知并推导青灯密码">
+              <span>05</span>
+            </label>
+            <div class="route-copy">
+              <h3>点草稿里的“机柜”，打开内部维护通知</h3>
+              <p>主题 ID：<code>t_server</code>。故障机柜是 <code>B27-0344</code>；保留大写字母和数字、删除横杠，得到青灯密码 <code>B270344</code>。</p>
+              <p class="success-sign">正文显示告警时段03:33–03:44；论坛进入第三层，背景房间、栏宽偏移与重复面包屑开始明显出现。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/thread/t_server" target="_blank" rel="noopener">打开机房通知</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已读取青灯回收站第37楼">
+              <span>06</span>
+            </label>
+            <div class="route-copy">
+              <h3>退出提灯人，登录“青灯”，打开回收站第37楼</h3>
+              <p>用户名 <code>青灯</code>，密码 <code>B270344</code>。登录后右上角会出现“回收站”，打开第二条《主帖·第37楼》即 <code>del_37</code>。</p>
+              <p class="success-sign">删除人与删除时间都为空，正文只剩 <code>content_len=4</code>；右侧随机贴图说明作者栏仍在刷新。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/login" target="_blank" rel="noopener">登录青灯</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已读取南城房间证据">
+              <span>07</span>
+            </label>
+            <div class="route-copy">
+              <h3>打开一篇真实房间记录</h3>
+              <p>最短用 <code>x_rent_37</code>《南城租房求助：宽带老断，门牌还被人撕了》。这一篇补齐房间证据，不能只看搜索摘要。</p>
+              <p class="success-sign">正文出现南城四号楼、5层东户和只剩“7”的钥匙牌。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/thread/x_rent_37" target="_blank" rel="noopener">打开房间记录</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已读主帖第35楼并看到37条复制回复">
+              <span>08</span>
+            </label>
+            <div class="route-copy">
+              <h3>进入主帖第4页，读到第35楼</h3>
+              <p>主帖 ID：<code>t_main</code>。第35楼加载“第五声不是我报的”后，下方会复制出<strong>37条</strong>同为第37楼的火星文、乱码、玩家用户名与最近搜索词。</p>
+              <p class="success-sign">批次顶部写“显示回复：37　实体记录：0”，第36楼按钮变成“下一楼（37）”，论坛进入锈红边缘与人影背景阶段。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/thread/t_main/page/4" target="_blank" rel="noopener">打开主帖第4页</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已进入真正的第37楼">
+              <span>09</span>
+            </label>
+            <div class="route-copy">
+              <h3>在第36楼点“下一楼（37）”</h3>
+              <p>进入隐藏主题 <code>t_37</code>《它在数你》。直接复制地址也可以验收，但少任何一份私密记录时都会显示“指定主题不存在”。</p>
+              <p class="success-sign">页面不再显示普通快速回复框，而是出现“房间里传来第五声”的终局操作区。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/thread/t_37" target="_blank" rel="noopener">进入第37楼</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已完成三次终局决定">
+              <span>10</span>
+            </label>
+            <div class="route-copy">
+              <h3>连续作出三次决定</h3>
+              <p>依次选择是否回应第五声、是否保留空位置、最后一份记录交给谁。想指定结局时，按下方“五结局精确选项”表选择。</p>
+              <p class="success-sign">页面出现三项决定清单和“即将归档”的具体结局名。</p>
+            </div>
+            <a class="thread-link" href="#endings">查看结局选项表</a>
+          </li>
+
+          <li class="route-step">
+            <label class="route-check" title="标记本步已完成">
+              <input type="checkbox" data-route-check aria-label="已读取完整结局正文">
+              <span>11</span>
+            </label>
+            <div class="route-copy">
+              <h3>完成最后两个确认动作</h3>
+              <p>先点<strong>“读取真正的结局”</strong>；闭幕层出现后再点<strong>“查看结局正文”</strong>。第二次点击不能漏，否则只看到了提示。</p>
+              <p class="success-sign">完整页面包含剧情收束、最后记录、致谢、THE END、结局档案和重新调查入口。</p>
+            </div>
+            <a class="thread-link" href="../site/bbs/index.html#/ending" target="_blank" rel="noopener">打开结局档案</a>
+          </li>
+        </ol>
+
+        <div class="callout">
+          <strong>新版不能再跳账号</strong>
+          即使公开帖子已经凑齐人物、房间、仪式、身份、服务器五类证据，缺少 <code>pm_youdeng</code>、<code>draft2</code> 或 <code>del_37</code> 中任意一条，第37楼仍不存在。三次登录是主线，不是收集彩蛋。
+        </div>
+      </section>
+
+      <section class="section" id="unlock">
+        <div class="section-heading">
+          <h2>第37楼的门禁原理</h2>
+          <p>这五个名称只适合作者调试，不应该直接显示在游戏论坛里。玩家只会通过页面变形、异常回复和帖子内容感知自己正在接近真相。</p>
+        </div>
+
+        <div class="evidence-map" aria-label="五类内部证据">
+          <article>
+            <h3>人物</h3>
+            <p>右灯03:33给小刀留下了只有收件人能读到的警告。</p>
+            <code>pm_youdeng</code>
+          </article>
+          <article>
+            <h3>房间</h3>
+            <p>证明南城四号楼存在不一致的门牌、墙体和租住记录。</p>
+            <code>x_rent_37</code>
+          </article>
+          <article>
+            <h3>仪式</h3>
+            <p>证明空位、第五声和围观者被算入仪式的规则。</p>
+            <code>t_main</code>
+          </article>
+          <article>
+            <h3>身份</h3>
+            <p>提灯人的草稿证明账号、人、名字和回帖者并非同一个对象。</p>
+            <code>draft2</code>
+          </article>
+          <article>
+            <h3>服务器</h3>
+            <p>证明缺失楼层不是普通删帖，离线状态仍在执行读取。</p>
+            <code>del_37</code>
+          </article>
+        </div>
+
+        <ul class="plain-list">
+          <li><strong>必须打开正文</strong>只在搜索列表看到标题，不会写入已读主题记录。</li>
+          <li><strong>进度只增不减</strong>回首页、换版块、刷新页面都不会让恐怖状态退回初始样式。</li>
+          <li><strong>第35楼是剧情锚点</strong>主帖第4页加载到第35楼时，才会记录“第五声”并插入异常回复。</li>
+          <li><strong>三份私密记录是硬门槛</strong>必须分别读过小刀私信、提灯人第二份草稿、青灯回收站第37楼；只知道密码或只登录不算。</li>
+          <li><strong>五类证据仍要齐全</strong>三份私密记录已提供人物、身份、服务器，另需房间记录与主帖仪式记录。</li>
+        </ul>
+
+        <details>
+          <summary>为什么旧攻略里写着“36份文档”</summary>
+          <div>
+            最早版本逐项检查36份核心文档，上一版又只检查五类证据，导致账号可以被公开帖子绕过。当前版本采用“3份私密记录 + 5类证据 + 第35楼第五声”门禁；不必读36份，但三个账号必须实际破解。
+          </div>
+        </details>
+      </section>
+
+      <section class="section" id="endings">
+        <div class="section-heading">
+          <h2>五结局精确选项</h2>
+          <p>第37楼会强制完成三次决定。前两次和第三次的组合决定最终结局；同一轮调查中，选择会一直保留。</p>
+        </div>
+
+        <div class="matrix ending-matrix" role="table" aria-label="五结局选项映射">
+          <div class="matrix-row matrix-head" role="row">
+            <div role="columnheader">结局</div>
+            <div role="columnheader">第五声</div>
+            <div role="columnheader">空位置</div>
+            <div role="columnheader">记录去向</div>
+            <div role="columnheader">结局含义</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="结局">占位结局<span>OCCUPIED / 03:44</span></div>
+            <div role="cell" data-label="第五声">回应：我在</div>
+            <div role="cell" data-label="空位置">写入我的名字</div>
+            <div role="cell" data-label="记录去向">任意一项</div>
+            <div role="cell" data-label="结局含义">你被写成第37楼的占位者，作者字段被清空。</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="结局">封存结局<span>SEALED / 03:44</span></div>
+            <div role="cell" data-label="第五声">保持沉默</div>
+            <div role="cell" data-label="空位置">保留空位置</div>
+            <div role="cell" data-label="记录去向">交给青灯</div>
+            <div role="cell" data-label="结局含义">论坛被重新封存，青灯把自己留在门后。</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="结局">回归结局<span>RETURN / 03:44</span></div>
+            <div role="cell" data-label="第五声">回应：我在</div>
+            <div role="cell" data-label="空位置">保留空位置</div>
+            <div role="cell" data-label="记录去向">交还右灯</div>
+            <div role="cell" data-label="结局含义">右灯借你的返回动作回到论坛，在线人数变成6。</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="结局">静默结局<span>SILENT / 03:44</span></div>
+            <div role="cell" data-label="第五声">保持沉默</div>
+            <div role="cell" data-label="空位置">保留空位置</div>
+            <div role="cell" data-label="记录去向">删除我的名字</div>
+            <div role="cell" data-label="结局含义">表面异常全部清除，但仍有1人正在输入。</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="结局">回声结局<span>ECHO / 03:44</span></div>
+            <div role="cell" data-label="第五声">其它组合</div>
+            <div role="cell" data-label="空位置">其它组合</div>
+            <div role="cell" data-label="记录去向">其它组合</div>
+            <div role="cell" data-label="结局含义">你没有占位，却被最后一页记住。示例：回应、保留、交给青灯。</div>
+          </div>
+        </div>
+
+        <div class="ending-warning">
+          <div>
+            <strong>占位结局优先级最高</strong>
+            只要前两项是“回应：我在”加“写入我的名字”，第三项选什么都会进入占位结局。
+          </div>
+          <div>
+            <strong>换结局必须重开调查</strong>
+            从结局正文或结局档案进入“重新开始调查”，确认清除本轮状态后，再走一遍最短路线。
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="story">
+        <div class="section-heading">
+          <h2>推荐的完整剧情顺序</h2>
+          <p>最短路线适合测功能，下面这条顺序适合正常体验。它让右灯先成为一个具体的人，再让房间、仪式、服务器和2023镜像逐步互相印证。</p>
+        </div>
+
+        <ol class="story-list">
+          <li>
+            <div>
+              <h3>先认识右灯和他的出租屋</h3>
+              <p>先建立“怕黑、嘴硬、需要有人在线”的人物底色，再把37从一个数字变成真实门牌和房间问题。</p>
+              <div class="record-links">
+                <a href="../site/bbs/index.html#/thread/x_meet_rightlamp" target="_blank" rel="noopener">第一次见右灯<code>x_meet_rightlamp</code></a>
+                <a href="../site/bbs/index.html#/thread/x_rent_37" target="_blank" rel="noopener">南城租房<code>x_rent_37</code></a>
+                <a href="../site/bbs/index.html#/thread/x_leave_light" target="_blank" rel="noopener">半夜留灯<code>x_leave_light</code></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>补齐外婆和“补缺送众”</h3>
+              <p>这一段解释空位为什么必须保留，也让蛤蟆的警告不再只是故作神秘。</p>
+              <div class="record-links">
+                <a href="../site/bbs/index.html#/thread/t_granny" target="_blank" rel="noopener">外婆的守灵夜<code>t_granny</code></a>
+                <a href="../site/bbs/index.html#/thread/f_granny_letter" target="_blank" rel="noopener">外婆的信<code>f_granny_letter</code></a>
+                <a href="../site/bbs/index.html#/thread/x_hama_granny" target="_blank" rel="noopener">蛤蟆与外婆<code>x_hama_granny</code></a>
+                <a href="../site/bbs/index.html#/thread/t_folk" target="_blank" rel="noopener">凑数<code>t_folk</code></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>按顺序读完三次实验</h3>
+              <p>削苹果污染图像，香灰拌饭污染路线，血腥玛丽污染身份。三次实验让异常从照片逐渐进入现实记录。</p>
+              <div class="record-links">
+                <a href="../site/bbs/index.html#/thread/t_exp1" target="_blank" rel="noopener">实验一实录<code>t_exp1</code></a>
+                <a href="../site/bbs/index.html#/thread/x_apple_prepare" target="_blank" rel="noopener">削苹果准备<code>x_apple_prepare</code></a>
+                <a href="../site/bbs/index.html#/thread/x_apple_lab" target="_blank" rel="noopener">照片对照<code>x_apple_lab</code></a>
+                <a href="../site/bbs/index.html#/thread/t_exp2" target="_blank" rel="noopener">实验二实录<code>t_exp2</code></a>
+                <a href="../site/bbs/index.html#/thread/x_ash_route" target="_blank" rel="noopener">香灰路线<code>x_ash_route</code></a>
+                <a href="../site/bbs/index.html#/thread/x_last_bus" target="_blank" rel="noopener">17路末班<code>x_last_bus</code></a>
+                <a href="../site/bbs/index.html#/thread/t_exp3" target="_blank" rel="noopener">实验三实录<code>t_exp3</code></a>
+                <a href="../site/bbs/index.html#/thread/x_mary_audio" target="_blank" rel="noopener">浴室录音<code>x_mary_audio</code></a>
+                <a href="../site/bbs/index.html#/thread/x_mary_delete" target="_blank" rel="noopener">删除记录<code>x_mary_delete</code></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>进入四角直播的同一分钟</h3>
+              <p>围观帖、值班电话和南城墙体同时失控，最后回到主帖第4页。这里是第一轮体验的恐怖峰值。</p>
+              <div class="record-links">
+                <a href="../site/bbs/index.html#/thread/x_live_water" target="_blank" rel="noopener">直播灌水帖<code>x_live_water</code></a>
+                <a href="../site/bbs/index.html#/thread/x_operator_live" target="_blank" rel="noopener">值班电话<code>x_operator_live</code></a>
+                <a href="../site/bbs/index.html#/thread/x_wall_live" target="_blank" rel="noopener">墙里拖椅子<code>x_wall_live</code></a>
+                <a href="../site/bbs/index.html#/thread/t_main/page/4" target="_blank" rel="noopener">主帖第4页<code>t_main</code></a>
+                <a href="../site/bbs/index.html#/thread/x_lock_discussion" target="_blank" rel="noopener">锁帖讨论<code>x_lock_discussion</code></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>读右灯失踪后的现实后果</h3>
+              <p>小刀、房东、邻居、警方和蛤蟆给出互相冲突的证词，逐渐证明“账号先存在，人再去占位置”。</p>
+              <div class="record-links">
+                <a href="../site/bbs/index.html#/thread/x_search_south" target="_blank" rel="noopener">南城寻找<code>x_search_south</code></a>
+                <a href="../site/bbs/index.html#/thread/x_witnesses" target="_blank" rel="noopener">证人矛盾<code>x_witnesses</code></a>
+                <a href="../site/bbs/index.html#/thread/x_restore_first" target="_blank" rel="noopener">第一次恢复<code>x_restore_first</code></a>
+                <a href="../site/bbs/index.html#/thread/x_hama_goodbye" target="_blank" rel="noopener">蛤蟆告别<code>x_hama_goodbye</code></a>
+                <a href="../site/bbs/index.html#/thread/x_anniversary_2006" target="_blank" rel="noopener">周年打卡<code>x_anniversary_2006</code></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>沿私信、草稿和回收站进入三个人的账号</h3>
+              <p>先用旧版规打开小刀收件箱，再用03:44打开提灯人草稿，最后用机柜编号打开青灯回收站。这里把“账号先存在，人再去占位置”变成玩家亲手验证的事实。</p>
+              <div class="record-links">
+                <a href="../site/bbs/index.html#/thread/t_rules" target="_blank" rel="noopener">旧版规<code>123456</code></a>
+                <a href="../site/bbs/index.html#/login" target="_blank" rel="noopener">小刀收件箱<code>pm_youdeng</code></a>
+                <a href="../site/bbs/index.html#/user/%E6%8F%90%E7%81%AF%E4%BA%BA" target="_blank" rel="noopener">提灯人资料<code>0344</code></a>
+                <a href="../site/bbs/index.html#/login" target="_blank" rel="noopener">交代（中）<code>draft2</code></a>
+                <a href="../site/bbs/index.html#/thread/t_server" target="_blank" rel="noopener">机柜记录<code>B27-0344</code></a>
+                <a href="../site/bbs/index.html#/recycle" target="_blank" rel="noopener">青灯回收站<code>del_37</code></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>看关站失败和2023镜像感染</h3>
+              <p>论坛物理断电后仍在写入，恢复旧站的访客开始被旧帖子引用。异常从2005延伸到当前浏览器。</p>
+              <div class="record-links">
+                <a href="../site/bbs/index.html#/thread/x_server_night" target="_blank" rel="noopener">机房值班<code>x_server_night</code></a>
+                <a href="../site/bbs/index.html#/thread/x_shutdown_vote" target="_blank" rel="noopener">永久关站<code>x_shutdown_vote</code></a>
+                <a href="../site/bbs/index.html#/thread/x_restore_notes" target="_blank" rel="noopener">前五次恢复<code>x_restore_notes</code></a>
+                <a href="../site/bbs/index.html#/thread/x_visitor_mail" target="_blank" rel="noopener">2023访客邮件<code>x_visitor_mail</code></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>回主帖第4页，再进入第37楼</h3>
+              <p>此时火星文回复、第五声、在线人数和空作者字段都有前文支撑。再做三次决定，结局会像玩家亲手完成的归档操作。</p>
+              <div class="record-links">
+                <a href="../site/bbs/index.html#/thread/t_main/page/4" target="_blank" rel="noopener">重读第35与36楼<code>t_main</code></a>
+                <a href="../site/bbs/index.html#/thread/t_37" target="_blank" rel="noopener">它在数你<code>t_37</code></a>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="truth-block">
+          <h3>通关时应该拼出的核心真相</h3>
+          <ol>
+            <li>右灯把正在看直播的论坛用户算成四角游戏的一部分，网页成为第四盏灯。</li>
+            <li>所谓第五声不是第五个人报数，而是那个不该被点名的空位置开始要求身份。</li>
+            <li>第37楼不是普通删帖。它是页面里缺失的一个位置，会借当前读者、当前账号或当前名字补全作者字段。</li>
+            <li>青灯能封存页面，却无法删除位置；右灯能回来，却必须借一次阅读、返回或回应动作。</li>
+            <li>最终三次决定本质上是在回答：谁回应，谁占位，谁保管这份记录。</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section" id="accounts">
+        <div class="section-heading">
+          <h2>账号与隐藏区域</h2>
+          <p>前三个账号现在都是主线硬门槛。密码必须从上一处记录推导，且登录后还要真正打开指定私密正文；只登录或只看到标题均不算。</p>
+        </div>
+
+        <div class="matrix account-matrix" role="table" aria-label="可登录账号">
+          <div class="matrix-row matrix-head" role="row">
+            <div role="columnheader">用户名</div>
+            <div role="columnheader">密码</div>
+            <div role="columnheader">隐藏区域</div>
+            <div role="columnheader">可验证内容</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="用户名">唯物主义小刀</div>
+            <div role="cell" data-label="密码"><code>123456</code></div>
+            <div role="cell" data-label="隐藏区域">收件箱</div>
+            <div role="cell" data-label="可验证内容">主线第1份：打开 <code>pm_youdeng</code>《别看》，获得提灯人账号的时间线索。</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="用户名">青灯</div>
+            <div role="cell" data-label="密码"><code>B270344</code></div>
+            <div role="cell" data-label="隐藏区域">回收站</div>
+            <div role="cell" data-label="可验证内容">主线第3份：在回收站打开 <code>del_37</code>；密码由机柜 <code>B27-0344</code> 去横杠得到。</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="用户名">提灯人</div>
+            <div role="cell" data-label="密码"><code>0344</code></div>
+            <div role="cell" data-label="隐藏区域">草稿箱</div>
+            <div role="cell" data-label="可验证内容">主线第2份：在草稿箱打开 <code>draft2</code>《交代（中）》；密码由03:44去冒号得到。</div>
+          </div>
+          <div class="matrix-row matrix-body" role="row">
+            <div class="result" role="cell" data-label="用户名">右灯</div>
+            <div role="cell" data-label="密码">不可用</div>
+            <div role="cell" data-label="隐藏区域">账号冻结</div>
+            <div role="cell" data-label="可验证内容">尝试登录会显示冻结时间 <code>2005-02-27 03:44</code>，这是预期剧情反馈。</div>
+          </div>
+        </div>
+
+        <div class="account-actions">
+          <a href="../site/bbs/index.html#/login" target="_blank" rel="noopener">打开登录页</a>
+          <a href="../site/bbs/index.html#/pm" target="_blank" rel="noopener">打开短消息</a>
+          <a href="../site/bbs/index.html#/recycle" target="_blank" rel="noopener">打开回收站</a>
+        </div>
+      </section>
+
+      <section class="section" id="stuck">
+        <div class="section-heading">
+          <h2>卡关排查</h2>
+          <p>先按症状定位。大多数问题都来自“只搜到但没点进正文”、旧浏览器进度残留，或者最后少点了一次结局确认。</p>
+        </div>
+
+        <div class="diagnostic">
+          <article>
+            <h3>第36楼仍写“下一楼（不存在）”</h3>
+            <ol>
+              <li>确认已分别打开 <code>pm_youdeng</code>、<code>draft2</code>、<code>del_37</code> 三份私密正文。</li>
+              <li>确认已打开一篇房间记录，例如 <code>x_rent_37</code>。</li>
+              <li>确认地址是 <code>#/thread/主题ID</code>，不是 <code>#/search/关键词</code>。</li>
+              <li>再进入主帖第4页，确认第35楼和第36楼都已渲染。</li>
+            </ol>
+          </article>
+          <article>
+            <h3>搜索“第37楼”却进不去</h3>
+            <p>搜索只是入口，不是门票。必须同时满足三份私密记录、五类证据和第35楼第五声；少一项，直接地址也会显示“指定主题不存在”。</p>
+          </article>
+          <article>
+            <h3>没有看到37条乱码回复</h3>
+            <p>必须先让论坛至少进入第三层，再在主帖第4页真正加载第35楼。批次插在第35楼之后，标题应写“显示回复：37　实体记录：0”。</p>
+          </article>
+          <article>
+            <h3>游客状态下出现了私信</h3>
+            <p>当前版本不会给游客生成、记录或展示动态私信；登录后事件才会重新判断并投递。若旧标签页仍有提示，请进入“重新开始调查”清旧存档后刷新验收。</p>
+          </article>
+          <article>
+            <h3>最快路线看不出样式变化</h3>
+            <p>按新路线核对：读小刀私信后应为第1层；读《交代（中）》后第2层；打开机房通知后第3层；主帖第35楼后第4层。回首页、退出账号和刷新均不能倒退。</p>
+          </article>
+          <article>
+            <h3>点完选择却不像结局</h3>
+            <p>三次选择后还要点“读取真正的结局”。闭幕提示出现后，再点“查看结局正文”。完整结局必须包含剧情、记录、致谢和 THE END。</p>
+          </article>
+          <article>
+            <h3>回首页后样式没有恢复</h3>
+            <p>这是当前设计的预期行为。调查状态单调递增，回首页、误触导航或刷新都不会把论坛突然还原。只有“重新开始调查”会清除本轮状态。</p>
+          </article>
+          <article>
+            <h3>旧进度让测试结果混乱</h3>
+            <p>最稳妥的方法是使用无痕窗口。也可以进入“重新开始调查”，清除阅读、私信、支线选择、异常事件和登录状态。</p>
+          </article>
+          <article>
+            <h3>想测试另一个结局</h3>
+            <p>从结局正文或结局档案进入“重新开始调查”，点击确认清除。它会保留已解锁结局档案和静音设置，然后按最短路线重新进入第37楼。</p>
+          </article>
+          <article>
+            <h3>重开后还有已读结局</h3>
+            <p>这是有意保留的收集进度，不是残留错误。重开只清本轮调查，<code>bbs_endings_seen</code> 与声音设置不会被删除。</p>
+          </article>
+        </div>
+
+        <div class="qa-strip" aria-label="作者验收标志">
+          <div><strong>主帖</strong>第35楼后出现37条异常缓存回复。</div>
+          <div><strong>门禁</strong>三份私密记录少任一条时保持“下一楼（不存在）”。</div>
+          <div><strong>终局</strong>三次选择后出现真正的结局读取按钮。</div>
+          <div><strong>归档</strong>结局正文结束后可进入结局档案和重新调查。</div>
+        </div>
+
+        <div class="callout">
+          <strong>推荐的作者验收方式</strong>
+          先用无痕窗口走一遍“最短必通路线”，确认门禁和任意一个结局；再用“重新开始调查”连续测其余四个结局。这样不会被开发期间遗留的浏览器存储干扰。
+        </div>
+
+        <p><a class="thread-link" href="../site/bbs/index.html#/replay" target="_blank" rel="noopener">打开重新调查页面</a></p>
+      </section>
+
+      <footer>
+        <p>依据当前项目中的 <code>evidence-state.js</code>、<code>bbs.js</code> 与 <code>endings.js</code> 整理。</p>
+        <p>勾选状态只存在于当前攻略页面，刷新后会清空，不会读取或改写游戏的浏览器存档。</p>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var boxes = Array.prototype.slice.call(document.querySelectorAll("[data-route-check]"));
+      var counter = document.getElementById("route-count");
+      var reset = document.getElementById("route-reset");
+
+      function updateCount() {
+        var done = boxes.filter(function (box) { return box.checked; }).length;
+        counter.textContent = done + " / " + boxes.length;
+      }
+
+      boxes.forEach(function (box) {
+        box.addEventListener("change", updateCount);
+      });
+
+      reset.addEventListener("click", function () {
+        boxes.forEach(function (box) { box.checked = false; });
+        updateCount();
+      });
+
+      updateCount();
+    })();
+  </script>
+</body>
+</html>

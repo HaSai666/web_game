@@ -14,11 +14,12 @@
   var MANUAL_KEY = "bbs_evidence_manual";
   var ANCHOR_KEY = "bbs_story_anchors";
   var TYPES = ["person", "room", "ritual", "identity", "server"];
+  var REQUIRED_PRIVATE = ["pm_youdeng", "draft2", "del_37"];
 
   var BASE_EVIDENCE = {
     person: [
       "t_granny", "f_lamp_debt", "f_rightlamp_note", "f_granny_letter",
-      "u_youdeng", "t_hama"
+      "u_youdeng", "t_hama", "pm_youdeng"
     ],
     room: [
       "f_floorplan", "f_door_watch", "f_neighbor_tape", "f_room_rental",
@@ -148,27 +149,58 @@
     var parts = location.hash.replace(/^#\/?/, "").split("/");
     return parts[0] === "thread" ? (parts[1] || "") : "";
   }
+  function privateAccess(opened) {
+    opened = opened || visited();
+    return {
+      knife: has(opened, "pm_youdeng"),
+      witness: has(opened, "draft2"),
+      moderator: has(opened, "del_37")
+    };
+  }
   function canEnterFinal(state) {
     state = state || evidence();
     for (var i = 0; i < TYPES.length; i++) if (!state[TYPES[i]].length) return false;
-    return true;
+    var opened = visited(), access = privateAccess(opened);
+    for (i = 0; i < REQUIRED_PRIVATE.length; i++) if (!has(opened, REQUIRED_PRIVATE[i])) return false;
+    return access.knife && access.witness && access.moderator && !!anchors().fifth_voice;
   }
   function hasAny(list, values) {
     for (var i = 0; i < values.length; i++) if (has(list, values[i])) return true;
     return false;
+  }
+  function evidenceSourceCount(state) {
+    var seen = {}, n = 0;
+    for (var i = 0; i < TYPES.length; i++) {
+      var list = state[TYPES[i]] || [];
+      for (var j = 0; j < list.length; j++) {
+        var id = String(list[j] || "");
+        /* A login is only a session; the record behind it is the clue.  The
+           right-lamp compatibility marker represents the same PM document. */
+        if (id.indexOf("login:") === 0) continue;
+        if (id === "pm:rightlamp") id = "pm_youdeng";
+        if (!id || seen[id]) continue;
+        seen[id] = true;
+        n++;
+      }
+    }
+    return n;
   }
   function calculate() {
     var opened = visited();
     var state = evidence();
     var a = anchors();
     var count = typeCount(state);
+    var sources = evidenceSourceCount(state);
     var next = 0;
-    var leakConfirmed = hasAny(opened, FIRST_LEAKS);
 
-    if (leakConfirmed) next = 1;
-    if (leakConfirmed && count >= 2) next = 2;
-    if (a.fifth_voice || has(opened, "x_lock_discussion")) next = 3;
-    if (count >= 4 && (hasAny(opened, LATE_SERVER_ANCHORS) || localStorage.getItem("bbs_choice_mod-snapshot"))) next = 4;
+    /* Count distinct records, not only the old experiment route.  A thread
+       tagged as two evidence types still advances the skin once, so no
+       shortcut can jump the forum from clean to late-stage in one click. */
+    if (sources >= 1 || hasAny(opened, FIRST_LEAKS)) next = 1;
+    if (sources >= 2) next = 2;
+    if (sources >= 3 && count >= 3) next = 3;
+    if ((a.fifth_voice && sources >= 4 && count >= 3) ||
+        (sources >= 4 && count >= 4 && (hasAny(opened, LATE_SERVER_ANCHORS) || localStorage.getItem("bbs_choice_mod-snapshot")))) next = 4;
     if (canEnterFinal(state) && routeThread() === "t_37") next = 5;
     return Math.max(readStage(), next);
   }
@@ -223,7 +255,11 @@
   function get() { return readStage(); }
   function summary() {
     var state = evidence();
-    return { stage: readStage(), evidence: state, typeCount: typeCount(state), finalReady: canEnterFinal(state), anchors: anchors() };
+    return {
+      stage: readStage(), evidence: state, typeCount: typeCount(state),
+      sourceCount: evidenceSourceCount(state), privateAccess: privateAccess(),
+      finalReady: canEnterFinal(state), anchors: anchors()
+    };
   }
 
   window.ArchiveEvidenceState = {
@@ -233,6 +269,7 @@
     record: record,
     markAnchor: markAnchor,
     evidence: evidence,
+    privateAccess: privateAccess,
     summary: summary,
     canEnterFinal: canEnterFinal
   };

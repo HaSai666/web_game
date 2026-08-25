@@ -197,7 +197,25 @@
     for (var i = 0; i < docs.length; i++) if (v.indexOf(docs[i]) !== -1) n++;
     return n;
   }
+  function investigationState() {
+    var summary = window.ArchiveEvidenceState ? window.ArchiveEvidenceState.summary() : null;
+    var v = visited();
+    return {
+      knife: v.indexOf("pm_youdeng") !== -1,
+      witness: v.indexOf("draft2") !== -1,
+      moderator: v.indexOf("del_37") !== -1,
+      fifth: !!(summary && summary.anchors && summary.anchors.fifth_voice),
+      room: !!(summary && summary.evidence && summary.evidence.room && summary.evidence.room.length),
+      finalReady: !!(summary && summary.finalReady)
+    };
+  }
   function archiveObservation(n) {
+    var trail = investigationState();
+    if (!trail.knife) return "小刀提过一封03:33的站内信。他注册那年，大多数会员没有改初始密码。";
+    if (!trail.witness) return "右灯与提灯人的资料页共用同一分钟；签名只留下了「那一天的时刻」。";
+    if (!trail.moderator) return "草稿末尾提到青灯仍沿用当值机柜编号，旧登录框不会记录横杠。";
+    if (!trail.room) return "三处私密记录都提到一间门牌残缺的南城出租屋。";
+    if (!trail.fifth) return "收件箱、草稿和回收站最终都指回主帖断开的那一页。";
     var observations = [
       "夜间帖子使用的时间格式与白天不同。",
       "同一位用户的签名在旧年份留下了另一种写法。",
@@ -209,6 +227,13 @@
     return observations[Math.min(observations.length - 1, Math.floor(n / 6))];
   }
   function archiveWhisper(n, level) {
+    var trail = investigationState(), detail = level >= 2;
+    if (!trail.knife) return detail ? "2004年版规写着六位数字的注册初始密码；小刀的旧号没有修改记录。" : "先查站务版2004年版规，再试小刀的用户名。";
+    if (!trail.witness) return detail ? "取右灯最后在线时间的「时」和「分」，去掉冒号，正好是四位。" : "右灯私信里的提灯人，在资料页留下了密码问题。";
+    if (!trail.moderator) return detail ? "搜索「机柜」，保留编号里的大写字母和数字，不输入连接符。" : "《交代（中）》最后一段不是正文；它留下了青灯旧号的校验规则。";
+    if (!trail.room) return detail ? "搜索「南城」或「37号房」，真正打开一篇租客或平面图记录。" : "机柜解释了页面，仍缺一份能证明房间真实存在的记录。";
+    if (!trail.fifth) return detail ? "打开主帖第4页，让页面真正加载第35楼；搜索结果页不算。" : "别从搜索摘要判断那一晚。回主帖读到报数出现第五声。";
+    if (!trail.finalReady) return "某一类公开记录仍只有标题，没有打开正文。沿着主帖下方的相关记录再核对一次。";
     var whispers = [
       "有个用户名在别的年份出现过，写法不完全相同。",
       "版块列表没有这条记录，正文里却留着入口。",

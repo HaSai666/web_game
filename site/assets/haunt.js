@@ -33,6 +33,11 @@
     for (var i = 0; i < BRANCHES.length; i++) if (has(BRANCHES[i])) n++;
     return n;
   }
+  function privateCount() {
+    var ids = ["pm_youdeng", "draft2", "del_37"], n = 0;
+    for (var i = 0; i < ids.length; i++) if (has(ids[i])) n++;
+    return n;
+  }
   function routeParts() {
     var hash = location.hash.replace(/^#\/?/, "");
     return hash ? hash.split("/") : [];
@@ -80,15 +85,21 @@
     document.body.classList.toggle("haunt-has-backup", has("f_mod_backup"));
     document.body.classList.toggle("haunt-has-guestbook", has("f_guestbook"));
     document.body.classList.toggle("haunt-has-letter", has("f_granny_letter"));
+    document.body.classList.toggle("haunt-has-private-pm", has("pm_youdeng"));
+    document.body.classList.toggle("haunt-has-private-draft", has("draft2"));
+    document.body.classList.toggle("haunt-has-private-recycle", has("del_37"));
   }
 
   function updateReflection() {
     var frame = document.querySelector(".rail-reflection");
     var copy = document.getElementById("rail-reflection-copy");
     if (!frame || !copy) return;
-    var n = branchCount(), id = threadId(), finalFrame = id === "t_37" || routeParts()[0] === "ending";
+    var n = Math.max(branchCount(), privateCount()), id = threadId(), finalFrame = id === "t_37" || routeParts()[0] === "ending";
     frame.setAttribute("data-reflection-depth", String(finalFrame ? 3 : Math.min(3, n)));
     if (id === "t_37" || routeParts()[0] === "ending") copy.textContent = "离镜头最近的位置已经有人坐过";
+    else if (has("del_37")) copy.textContent = "回收站的作者栏仍在刷新";
+    else if (has("draft2")) copy.textContent = "草稿里的第五声没有保存时间";
+    else if (has("pm_youdeng")) copy.textContent = "收件箱未读时间比本次登录更早";
     else if (has("f_chair_back")) copy.textContent = "底片里的人影没有面向房间";
     else if (has("f_rack_log")) copy.textContent = "断电后，反射帧仍在更新";
     else if (has("f_phone_line")) copy.textContent = "接线台的空号还保持占线";
@@ -107,7 +118,7 @@
     var nav = document.getElementById("navbar");
     if (!nav) return;
     var node = document.getElementById("haunt-typing");
-    var show = tier() >= 2 && (has("f_audio_log") || has("f_reply_shadow") || has("f_phone_line") || has("f_editor_cache") || has("t_eleven"));
+    var show = tier() >= 2 && (privateCount() || has("f_audio_log") || has("f_reply_shadow") || has("f_phone_line") || has("f_editor_cache") || has("t_eleven"));
     if (!show) {
       if (node) node.remove();
       return;
@@ -124,6 +135,9 @@
     var text = node.querySelector("span");
     if (text) {
       if (has("t_37")) text.textContent = "一名未登记用户仍在输入";
+      else if (has("del_37")) text.textContent = "回收站的作者栏仍在刷新";
+      else if (has("draft2")) text.textContent = "一份没有保存时间的草稿正在输入";
+      else if (has("pm_youdeng")) text.textContent = "收件箱有一封信反复变回未读";
       else if (has("f_reply_shadow")) text.textContent = "未登记用户正在补全一句话";
       else if (has("f_editor_cache")) text.textContent = "光标正在等待下一次回车";
       else if (has("f_phone_line")) text.textContent = "一条没有号码的线路正在占线";
@@ -132,7 +146,7 @@
   }
 
   function ghostPostHtml() {
-    var content = has("t_eleven") ? "正在恢复四个字" : "正在恢复一条没有作者的回复";
+    var content = has("del_37") ? "正在从回收站恢复四个字" : (has("draft2") ? "正在恢复一份未发送的草稿" : (has("t_eleven") ? "正在恢复四个字" : "正在恢复一条没有作者的回复"));
     return '<article class="floor postbit haunt-ghost-post" aria-label="未归档回复">' +
       '<div class="p-side"><div class="p-avatar">空</div><div class="p-uid">（未登记）</div><div class="p-title">访客</div><div class="p-meta">注册：--<br>发帖：1</div></div>' +
       '<div class="p-main"><div class="p-bar"><span class="p-time">2005-02-27 03:44</span><span class="p-fn">　楼</span><span class="p-links">缓存恢复</span></div>' +
@@ -140,7 +154,7 @@
   }
   function injectGhostPost() {
     var id = threadId();
-    if (id !== "t_main" || !(has("f_reply_shadow") || has("t_eleven") || has("f_audio_log") || has("f_door_watch"))) return;
+    if (id !== "t_main" || !(privateCount() || has("f_reply_shadow") || has("t_eleven") || has("f_audio_log") || has("f_door_watch"))) return;
     var view = document.getElementById("view");
     if (!view || view.querySelector(".haunt-ghost-post")) return;
     var reply = view.querySelector(".reply-box");
@@ -149,7 +163,7 @@
     var post = view.querySelector(".haunt-ghost-post");
     setTimeout(function () {
       var line = post && post.querySelector(".haunt-type-line span");
-      if (line) line.textContent = has("t_eleven") ? "恢复失败。正文已经被当前访客读取。" : "恢复失败。作者仍然在线。";
+      if (line) line.textContent = has("del_37") || has("t_eleven") ? "恢复失败。正文已经被当前访客读取。" : "恢复失败。作者仍然在线。";
       if (post) post.classList.add("is-resolved");
       pulse("soft");
     }, 2800);
@@ -286,5 +300,5 @@
   else schedule();
   window.addEventListener("hashchange", schedule);
   window.addEventListener("archivepm", schedule);
-  window.ArchiveHaunt = { refresh: refresh, branchCount: branchCount };
+  window.ArchiveHaunt = { refresh: refresh, branchCount: branchCount, privateCount: privateCount };
 })();

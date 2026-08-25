@@ -32,6 +32,15 @@
     ["（未登记）", "mars", "莪等伱按下一次囙車"],
     ["系统", "markup", "&lt;/table&gt;　实体记录：49　显示位置：50"]
   ];
+  var COPY_LINES = [
+    ["（作者字段为空）", "mars", "別數　別數　別數　別數　到伱了"],
+    ["右灯", "mojibake", "鎴戜笉鍦ㄩ棬澶栥€€浣犲湪闂ㄩ噷"],
+    ["唯物主义小刀", "markup", "[quote author=\"{visitor}\"]不要替我承认第五声[/quote]"],
+    ["（未登记）", "mars", "四個角都冇空　伱站啲位置算誰啲"],
+    ["系统", "markup", "&lt;input name=\"reader\" value=\"{visitor}\"&gt;"],
+    ["2023访客", "mojibake", "浣犳悳杩囩殑璇嶏細{search}　已寫進這一樓"],
+    ["水晶之恋", "mars", "莪沒冇囙復　頁面洎己復製ㄋ莪"]
+  ];
   var TRANSFER_BATCH = [
     ["无灯", "mars", "迩离开主帖以后，它跟过来了。"],
     ["（未登记）", "mojibake", "褰撳墠璁块棶鑰?　{visitor}"],
@@ -105,13 +114,35 @@
       .replace(/\{search\}/g, esc(lastSearch()));
   }
 
+  function mainBatchRows() {
+    var out = MAIN_BATCH.slice();
+    while (out.length < 37) {
+      var offset = out.length - MAIN_BATCH.length;
+      var source = COPY_LINES[offset % COPY_LINES.length];
+      var pass = Math.floor(offset / COPY_LINES.length);
+      var repeats = pass === 0 ? 2 : (pass === 1 ? 4 : 8);
+      var pieces = [];
+      for (var i = 0; i < repeats; i++) pieces.push(source[2]);
+      out.push([
+        source[0], source[1], pieces.join(source[1] === "markup" ? "<br>" : "　"),
+        { duplicate: true, group: (offset % COPY_LINES.length) + 1, density: pass + 1 }
+      ]);
+    }
+    return out;
+  }
+
   function corruptionFloor(row, index, transferred) {
     var uid = row[0], dialect = row[1], body = interpolate(row[2]);
+    var meta = row[3] || {};
     var glyph = dialect === "markup" ? "源" : (dialect === "mojibake" ? "码" : "空");
-    return '<article class="floor postbit corruption-floor dialect-' + dialect + (transferred ? ' is-transferred' : '') + '" data-source-floor="37">' +
+    var duplicateClass = meta.duplicate ? ' is-duplicate copy-density-' + meta.density : '';
+    var duplicateAttr = meta.duplicate ? ' data-copy-group="' + meta.group + '"' : '';
+    var stamp = meta.duplicate ? '复制组：0' + meta.group + '　字节校验：与上一份一致　实体记录：0' : '本楼不计入当前主题回复数。';
+    var time = meta.duplicate && index % 5 === 0 ? "2005-02-27 03:33" : "2005-02-27 03:44";
+    return '<article class="floor postbit corruption-floor dialect-' + dialect + (transferred ? ' is-transferred' : '') + duplicateClass + '" data-source-floor="37"' + duplicateAttr + '>' +
       '<div class="p-side"><div class="p-avatar">' + glyph + '</div><div class="p-uid">' + esc(uid) + '</div><div class="p-title">' + (transferred ? "跨版回复" : "会员") + '</div><div class="p-meta">注册：--<br>发帖：' + (index + 1) + '</div></div>' +
-      '<div class="p-main"><div class="p-bar"><span class="p-time">2005-02-27 03:44</span><span class="p-fn">37楼</span><span class="p-links">引用　回复</span></div>' +
-      '<div class="p-cont"><p>' + body + '</p><p class="stamp">本楼不计入当前主题回复数。</p></div></div></article>';
+      '<div class="p-main"><div class="p-bar"><span class="p-time">' + time + '</span><span class="p-fn">37楼</span><span class="p-links">引用　回复</span></div>' +
+      '<div class="p-cont"><p>' + body + '</p><p class="stamp">' + stamp + '</p></div></div></article>';
   }
 
   function addSingleLeak(summary) {
@@ -162,8 +193,9 @@
     var section = document.createElement("section");
     section.className = "corruption-batch";
     section.setAttribute("aria-label", "缓存中恢复的异常回复");
-    var html = '<div class="corruption-batch-head"><b>以下回复来自未完成的页面缓存</b><span>楼层索引校验失败</span></div>';
-    for (var i = 0; i < MAIN_BATCH.length; i++) html += corruptionFloor(MAIN_BATCH[i], i, false);
+    var rows = mainBatchRows();
+    var html = '<div class="corruption-batch-head"><b>页面缓存正在重复写入同一楼层</b><span>显示回复：37　实体记录：0</span></div>';
+    for (var i = 0; i < rows.length; i++) html += corruptionFloor(rows[i], i, false);
     section.innerHTML = html;
     floor35.insertAdjacentElement("afterend", section);
     document.body.classList.add("corruption-has-batch");

@@ -462,28 +462,47 @@ function viewUser(name) {
 }
 
 /* ---------- 视图·登录 ---------- */
-function viewLogin(msg) {
+function passwordRecoveryHint(name) {
+  name = String(name || "").replace(/^\s+|\s+$/g, "");
+  if (!name) return "请先填写用户名。旧站找回邮箱已经停用，只留下了注册时的提示问题。";
+  if (BBS.frozen[name]) return "该账号的找回流程已被冻结。冻结记录与最后在线时间相同。";
+  var account = ACCOUNTS[name];
+  if (!account) return "旧会员表里没有这个用户名，或该账号从未保留找回提示。";
+  var v = getVisited(), deep = false;
+  if (name === "唯物主义小刀") deep = v.indexOf("t_rules") !== -1 || v.indexOf("f_baodao") !== -1;
+  else if (name === "提灯人") deep = v.indexOf("pm_youdeng") !== -1 || (v.indexOf("u_youdeng") !== -1 && v.indexOf("u_tidengren") !== -1);
+  else if (name === "青灯") deep = v.indexOf("draft2") !== -1 && (v.indexOf("t_server") !== -1 || v.indexOf("f_rack_log") !== -1);
+  return deep && account.recoveryDeep ? account.recoveryDeep : (account.recovery || "该账号没有可恢复的提示。 ");
+}
+function viewLogin(msg, rememberedName) {
   setTier(1);
   renderChrome("» 会员登录");
   document.getElementById("view").innerHTML =
     '<form class="login-panel" onsubmit="return false;"><h3>会员登录</h3>' +
     '<input type="text" id="login-name" placeholder="用户名">' +
     '<input type="password" id="login-pass" placeholder="密码">' +
-    '<button id="login-btn">登录</button>' +
-    '<div class="login-err">' + (msg || "") + '</div>' +
-    '<div class="login-tip">提示：注册功能已关闭。旧账号的密码仍按原站规则校验。</div></form>';
+    '<div class="login-actions"><button id="login-btn" type="button">登录</button><button id="login-recovery" type="button">读取找回提示</button></div>' +
+    '<div class="login-err">' + esc(msg || "") + '</div>' +
+    '<div class="login-tip">注册功能已关闭。旧账号仍按原站规则校验；找回邮箱只剩一份损坏的提示副本。</div>' +
+    '<div class="login-recovery" id="login-recovery-copy" role="status" aria-live="polite">请输入用户名后读取提示。</div></form>';
+  if (rememberedName) document.getElementById("login-name").value = rememberedName;
+  document.getElementById("login-recovery").addEventListener("click", function () {
+    var n = document.getElementById("login-name").value;
+    var output = document.getElementById("login-recovery-copy");
+    if (output) output.textContent = passwordRecoveryHint(n);
+  });
   document.getElementById("login-btn").addEventListener("click", function () {
     var n = document.getElementById("login-name").value.replace(/^\s+|\s+$/g, "");
     var p = document.getElementById("login-pass").value.replace(/^\s+|\s+$/g, "");
     if (BBS.frozen[n]) {
-      viewLogin("该账号已被冻结。冻结时间：" + BBS.frozen[n]);
+      viewLogin("该账号已被冻结。冻结时间：" + BBS.frozen[n], n);
       return;
     }
     if (ACCOUNTS[n] && ACCOUNTS[n].pw === p) {
       localStorage.setItem("bbs_session", n);
       location.hash = "#/pm";
     } else {
-      viewLogin("用户名或密码错误。");
+      viewLogin("用户名或密码错误。", n);
     }
   });
 }
@@ -501,7 +520,7 @@ function viewPM(box, idx) {
     if (!pm) { location.hash = "#/pm"; return; }
     if (pm.doc) markVisited(pm.id);
     markPmRead(pm.id);
-    if (pm.id === "evt_pm_rightlamp_0336") {
+    if (pm.id === "pm_youdeng" || pm.id === "evt_pm_rightlamp_0336") {
       try { localStorage.setItem("bbs_read_rightlamp", "1"); } catch (e) {}
     }
     document.getElementById("view").innerHTML =

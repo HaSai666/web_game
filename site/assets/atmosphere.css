@@ -1358,7 +1358,8 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   --cold: #b4c8bd;
   --accent: #a76152;
   --accent-dim: #71463d;
-  --ambient-opacity: .12;
+  --ambient-opacity: .06;
+  --stage-stain: rgba(113, 143, 130, .025);
 }
 .forum-page[data-haunt-stage="1"] {
   --bbs-bg: #121a18;
@@ -1375,7 +1376,8 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   --cold: #b3c5b8;
   --accent: #a66353;
   --accent-dim: #75483e;
-  --ambient-opacity: .16;
+  --ambient-opacity: .18;
+  --stage-stain: rgba(115, 145, 130, .055);
 }
 .forum-page[data-haunt-stage="2"] {
   --bbs-bg: #161b18;
@@ -1392,7 +1394,8 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   --cold: #bdc1ad;
   --accent: #aa6655;
   --accent-dim: #75483d;
-  --ambient-opacity: .23;
+  --ambient-opacity: .34;
+  --stage-stain: rgba(141, 126, 80, .105);
 }
 .forum-page[data-haunt-stage="3"] {
   --bbs-bg: #151a18;
@@ -1409,7 +1412,8 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   --cold: #bac8be;
   --accent: #aa6253;
   --accent-dim: #79473f;
-  --ambient-opacity: .31;
+  --ambient-opacity: .48;
+  --stage-stain: rgba(126, 112, 82, .13);
 }
 .forum-page[data-haunt-stage="4"] {
   --bbs-bg: #151918;
@@ -1426,7 +1430,8 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   --cold: #b9c6bc;
   --accent: #ad6054;
   --accent-dim: #7b443e;
-  --ambient-opacity: .39;
+  --ambient-opacity: .62;
+  --stage-stain: rgba(143, 68, 58, .18);
 }
 .forum-page[data-haunt-stage="5"] {
   --bbs-bg: #141918;
@@ -1443,11 +1448,13 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   --cold: #bacbc1;
   --accent: #a35e51;
   --accent-dim: #71443c;
-  --ambient-opacity: .28;
+  --ambient-opacity: .25;
+  --stage-stain: rgba(132, 151, 144, .055);
 }
 
 .forum-page[data-haunt-stage] {
   background:
+    radial-gradient(ellipse at 86% 43%, var(--stage-stain), transparent 34rem),
     radial-gradient(ellipse at 48% -12%, rgba(128, 151, 141, .09), transparent 46rem),
     linear-gradient(90deg, rgba(12, 18, 17, .18), transparent 28%, transparent 72%, rgba(12, 18, 17, .18)),
     var(--bbs-bg) !important;
@@ -1455,6 +1462,19 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   font-family: SimSun, "NSimSun", "Microsoft YaHei", sans-serif;
 }
 .forum-page[data-haunt-stage] #archive-ambient { background: var(--bbs-bg-deep) !important; }
+.forum-page[data-haunt-stage] #archive-ambient::after {
+  content: "";
+  position: absolute;
+  right: 7vw;
+  top: 10vh;
+  width: clamp(170px, 23vw, 360px);
+  height: 72vh;
+  border: 1px solid transparent;
+  opacity: 0;
+  transform: perspective(520px) rotateY(-4deg) translateX(3vw);
+  transition: opacity 1.4s ease, transform 1.4s ease, border-color 1.4s ease;
+  pointer-events: none;
+}
 .forum-page[data-haunt-stage] #archive-ambient .ambient-photo {
   inset: -3%;
   background-image:
@@ -1468,17 +1488,29 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   background-position: 49.5% center, center !important;
   filter: grayscale(.72) contrast(1.15) brightness(.42) blur(2px) !important;
 }
-.forum-page[data-haunt-stage="2"][data-evidence-room="true"] #archive-ambient .ambient-photo {
+.forum-page[data-haunt-stage="2"] #archive-ambient .ambient-photo {
   background-image:
     linear-gradient(90deg, rgba(15, 20, 18, .80), rgba(15, 20, 18, .46) 48%, rgba(15, 20, 18, .82)),
     url("img/oldroom-v2.jpg") !important;
   filter: grayscale(.62) sepia(.08) contrast(1.18) brightness(.41) blur(2.2px) !important;
+}
+.forum-page[data-haunt-stage="2"] #archive-ambient::after {
+  border-color: rgba(173, 169, 133, .10);
+  opacity: .32;
+  transform: perspective(520px) rotateY(-3deg) translateX(1vw);
+  box-shadow: inset 24px 0 58px rgba(5, 7, 6, .18);
 }
 .forum-page[data-haunt-stage="3"] #archive-ambient .ambient-photo {
   background-image:
     linear-gradient(90deg, rgba(17, 17, 16, .78), rgba(17, 17, 16, .39) 48%, rgba(17, 17, 16, .79)),
     url("img/corner-v2.jpg") !important;
   filter: grayscale(.68) sepia(.07) contrast(1.22) brightness(.36) blur(2.2px) !important;
+}
+.forum-page[data-haunt-stage="3"] #archive-ambient::after {
+  border-color: rgba(174, 169, 139, .15);
+  opacity: .58;
+  transform: perspective(520px) rotateY(-2deg) translateX(-2vw);
+  box-shadow: inset 42px 0 78px rgba(3, 5, 4, .34), -13vw 16vh 120px rgba(5, 7, 6, .24);
 }
 .forum-page[data-haunt-stage="4"] #archive-ambient .ambient-photo {
   background-image:
@@ -1487,6 +1519,13 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   background-position: center, 72% center !important;
   filter: grayscale(.8) sepia(.08) contrast(1.32) brightness(.32) blur(2.6px) !important;
 }
+.forum-page[data-haunt-stage="4"] #archive-ambient::after {
+  border-color: rgba(171, 93, 77, .22);
+  opacity: .84;
+  transform: perspective(520px) rotateY(0) translateX(-7vw) scaleX(1.08);
+  background: linear-gradient(90deg, transparent 68%, rgba(24, 7, 7, .16));
+  box-shadow: inset 72px 0 110px rgba(3, 3, 3, .48), -20vw 14vh 150px rgba(9, 3, 4, .36);
+}
 .forum-page[data-haunt-stage="5"] #archive-ambient .ambient-photo {
   background-image:
     linear-gradient(90deg, rgba(15, 21, 19, .74), rgba(15, 21, 19, .32) 50%, rgba(15, 21, 19, .74)),
@@ -1494,6 +1533,7 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   background-position: center !important;
   filter: grayscale(.88) contrast(1.18) brightness(.34) blur(2.4px) !important;
 }
+.forum-page[data-haunt-stage="5"] #archive-ambient::after { opacity: 0; transform: none; }
 .forum-page[data-haunt-stage="2"] #archive-ambient .ambient-shadow { opacity: .82; transform: rotate(-5deg) translateX(-2vw); }
 .forum-page[data-haunt-stage="3"] #archive-ambient .ambient-shadow { opacity: .9; transform: rotate(-4deg) translateX(-5vw); }
 .forum-page[data-haunt-stage="4"] #archive-ambient .ambient-shadow { opacity: .96; transform: rotate(-2deg) translateX(-11vw) scaleX(1.12); }
@@ -1520,9 +1560,9 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   gap: 10px;
   transition: grid-template-columns .7s cubic-bezier(.16, 1, .3, 1), gap .7s cubic-bezier(.16, 1, .3, 1);
 }
-.forum-page[data-haunt-stage="2"] .forum-grid { grid-template-columns: 154px minmax(0, 1fr) 194px; gap: 11px; }
-.forum-page[data-haunt-stage="3"] .forum-grid { grid-template-columns: 151px minmax(0, 1fr) 199px; gap: 12px; }
-.forum-page[data-haunt-stage="4"] .forum-grid { grid-template-columns: 146px minmax(0, 1fr) 205px; gap: 13px; }
+.forum-page[data-haunt-stage="2"] .forum-grid { grid-template-columns: 150px minmax(0, 1fr) 200px; gap: 12px; }
+.forum-page[data-haunt-stage="3"] .forum-grid { grid-template-columns: 142px minmax(0, 1fr) 210px; gap: 14px; }
+.forum-page[data-haunt-stage="4"] .forum-grid { grid-template-columns: 130px minmax(0, 1fr) 224px; gap: 16px; }
 .forum-page[data-haunt-stage="5"] .forum-grid { grid-template-columns: 176px minmax(0, 1fr) 176px; gap: 12px; }
 .forum-page[data-haunt-stage] .archive-rail { position: static; top: auto; }
 .forum-page[data-haunt-stage] .rail-block {
@@ -1732,6 +1772,19 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   border-color: var(--line) !important;
   background: var(--surface) !important;
 }
+.forum-page[data-haunt-stage] .login-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 1px; }
+.forum-page[data-haunt-stage] .login-actions button { margin-top: 0; }
+.forum-page[data-haunt-stage] .login-actions #login-recovery { border-style: dashed !important; color: var(--paper-dim) !important; background: var(--surface-deep) !important; }
+.forum-page[data-haunt-stage] .login-recovery {
+  margin-top: 10px;
+  padding: 8px 9px;
+  border: 1px dashed var(--line);
+  border-left: 2px solid var(--accent-dim);
+  background: var(--surface-deep);
+  color: var(--paper-dim);
+  font-size: 11px;
+  line-height: 1.65;
+}
 
 .thread-pagination {
   display: flex;
@@ -1769,6 +1822,10 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
 .forum-page[data-final-ready="true"] .thread-pagination .page-phantom { border-color: var(--accent-dim); color: var(--accent); }
 
 /* Evidence-specific contamination. */
+.forum-page[data-haunt-stage="1"] #logo-name {
+  text-shadow: 1px 0 rgba(167, 97, 82, .24), -1px 0 rgba(140, 165, 151, .16), 0 1px rgba(10, 15, 14, .8);
+}
+.forum-page[data-haunt-stage="1"] #topbar { border-right-color: color-mix(in srgb, var(--accent-dim) 42%, var(--line-strong)) !important; }
 .forum-page[data-haunt-stage="1"] .sigline:nth-of-type(odd) { transform: translateX(1px); }
 .forum-page[data-haunt-stage="1"] .p-time[data-time-echo]::after {
   content: attr(data-time-echo);
@@ -1786,13 +1843,39 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
 .forum-page[data-haunt-stage="2"] .borrowed-signature,
 .forum-page[data-haunt-stage="3"] .borrowed-signature,
 .forum-page[data-haunt-stage="4"] .borrowed-signature { transform: translateX(2px); color: var(--accent) !important; }
-.forum-page[data-haunt-stage="3"] #archive-rail-right { transform: translateY(3px); }
-.forum-page[data-haunt-stage="3"] #crumbs { transform: translateX(1px); }
+.forum-page[data-haunt-stage="2"] #archive-rail-left .rail-block:nth-child(even) { transform: translateX(-2px); }
+.forum-page[data-haunt-stage="2"] table.bbs tr:nth-child(4n) td:first-child { padding-left: 10px; }
+.forum-page[data-haunt-stage="2"].haunt-has-private-draft #navbar { border-bottom-color: var(--accent-dim) !important; }
+.forum-page[data-haunt-stage="3"] #archive-rail-right { transform: translate(3px, 6px); }
+.forum-page[data-haunt-stage="3"] #crumbs { transform: translateX(2px); }
+.forum-page[data-haunt-stage="3"] #crumbs::after {
+  content: "　» 莲灯夜话";
+  color: color-mix(in srgb, var(--accent) 22%, transparent);
+  pointer-events: none;
+}
+.forum-page[data-haunt-stage="3"] .floor.postbit:nth-of-type(5n) { transform: translateX(2px); }
 .forum-page[data-haunt-stage="3"] .floor[data-post-user="右灯"] .p-bar { background: color-mix(in srgb, var(--accent-dim) 18%, var(--surface-raised)) !important; }
-.forum-page[data-haunt-stage="4"] #archive-rail-left { transform: translateY(2px); }
-.forum-page[data-haunt-stage="4"] #archive-rail-right { transform: translateY(-2px); }
-.forum-page[data-haunt-stage="4"] #navbar { transform: translateX(-1px); }
-.forum-page[data-haunt-stage="4"] #crumbs { transform: translateX(2px); }
+.forum-page[data-haunt-stage="4"] #archive-rail-left { transform: translate(-3px, 7px); }
+.forum-page[data-haunt-stage="4"] #archive-rail-right { transform: translate(5px, -7px); }
+.forum-page[data-haunt-stage="4"] #navbar { transform: translateX(-3px); }
+.forum-page[data-haunt-stage="4"] #crumbs { transform: translateX(4px); }
+.forum-page[data-haunt-stage="4"] #logo { position: relative; isolation: isolate; }
+.forum-page[data-haunt-stage="4"] #logo-name::after {
+  content: "莲灯夜话";
+  position: absolute;
+  z-index: -1;
+  left: 8px;
+  top: 2px;
+  color: color-mix(in srgb, var(--accent) 19%, transparent);
+  letter-spacing: .28em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.forum-page[data-haunt-stage="4"] #view {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-dim) 8%, transparent), transparent 19%, transparent 83%, color-mix(in srgb, var(--accent-dim) 11%, transparent)),
+    color-mix(in srgb, var(--surface-deep) 93%, transparent) !important;
+}
 .forum-page[data-haunt-stage="4"][data-evidence-server="true"] #view::after {
   content: "<tbody data-reader=\"current\">   cache_row: 37   author_id: 0";
   position: absolute;
@@ -1810,6 +1893,8 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
 .forum-page[data-haunt-stage="5"] #navbar,
 .forum-page[data-haunt-stage="5"] #crumbs,
 .forum-page[data-haunt-stage="5"] #view { transform: none !important; }
+.forum-page[data-haunt-stage="5"] #logo-name::after,
+.forum-page[data-haunt-stage="5"] #crumbs::after { content: none !important; }
 .forum-page[data-haunt-stage="5"] .monitor-bars i { height: 1px !important; opacity: .38; }
 .forum-page[data-haunt-stage="5"] #view { background: color-mix(in srgb, var(--surface-deep) 98%, transparent) !important; }
 .forum-page[data-haunt-stage="5"] #view::after { content: "" !important; opacity: 0 !important; background: none !important; }
@@ -1836,6 +1921,22 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
 .corruption-floor.dialect-mars .p-cont { font-family: SimSun, serif; letter-spacing: .07em; }
 .corruption-floor.dialect-mojibake .p-cont { color: color-mix(in srgb, var(--paper-dim) 75%, var(--accent)) !important; font-family: SimSun, serif; word-break: break-all; }
 .corruption-floor.dialect-markup .p-cont { color: var(--cold) !important; font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+.corruption-batch .corruption-floor.is-duplicate {
+  grid-template-columns: 108px minmax(0, 1fr) !important;
+  margin-top: -2px !important;
+  margin-bottom: 0 !important;
+  border-color: color-mix(in srgb, var(--accent-dim) 78%, var(--line)) !important;
+}
+.corruption-floor.is-duplicate .p-side { padding: 7px 5px !important; }
+.corruption-floor.is-duplicate .p-avatar { width: 34px !important; height: 34px !important; font-size: 16px !important; }
+.corruption-floor.is-duplicate .p-meta { margin-top: 3px !important; }
+.corruption-floor.is-duplicate .p-cont { min-height: 54px !important; padding: 8px 10px !important; overflow-wrap: anywhere; }
+.corruption-floor.copy-density-2 .p-cont p:first-child { line-height: 1.5; }
+.corruption-floor.copy-density-3 .p-cont p:first-child { line-height: 1.36; letter-spacing: .02em; }
+.corruption-floor[data-copy-group="1"] .p-cont,
+.corruption-floor[data-copy-group="4"] .p-cont { color: color-mix(in srgb, var(--accent) 72%, var(--paper-dim)) !important; }
+.corruption-floor.is-duplicate:nth-child(3n) { transform: translateX(-2px); }
+.corruption-floor.is-duplicate:nth-child(4n) { transform: translateX(3px); }
 .corruption-floor:nth-child(4n+2) { transform: translateX(1px); }
 .corruption-floor:nth-child(5n+1) .p-bar { padding-left: 12px; }
 .forum-page[data-haunt-stage="4"] .corruption-floor:nth-child(3n) .p-side { grid-row: 1; }
@@ -1996,6 +2097,8 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
   .corruption-batch-head span { display: block; margin-top: 2px; }
   .corruption-batch .corruption-floor,
   .corruption-transfer .corruption-floor { margin: 5px !important; }
+  .corruption-batch .corruption-floor.is-duplicate { grid-template-columns: 76px minmax(0, 1fr) !important; transform: none; }
+  .corruption-floor.is-duplicate .p-uid { overflow-wrap: anywhere; }
   .finale-terminal { padding: 19px 13px 16px; }
   .finale-choice,
   .finale-choice-three { grid-template-columns: 1fr; }
@@ -2005,6 +2108,7 @@ body.haunt-has-letter .rail-reflection { background-position: 54% center; }
 @media (prefers-reduced-motion: reduce) {
   .forum-page[data-haunt-stage] .forum-grid,
   .forum-page[data-haunt-stage] #archive-ambient .ambient-photo,
+  .forum-page[data-haunt-stage] #archive-ambient::after,
   .forum-page[data-haunt-stage] .rail-reflection span,
   .forum-page[data-haunt-stage] .route-enter,
   .archive-short-frame { transition: none !important; animation: none !important; }

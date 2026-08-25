@@ -5,7 +5,6 @@
 
   var EVENT_KEY = "bbs_event_records";
   var PM_KEY = "bbs_event_pms";
-  var DEFAULT_USER = "唯物主义小刀";
   var timer = null, lastRoute = "", booted = false;
 
   function read(key, fallback) {
@@ -35,15 +34,15 @@
     for (var i = 0; i < list.length; i++) if (list[i].id === id) return true;
     return false;
   }
-  function appendRecord(evt) {
+  function appendRecord(evt, recipient) {
     var list = records();
-    list.push({ id: evt.id, label: evt.label, time: new Date().toISOString() });
+    list.push({ id: evt.id, label: evt.label, kind: evt.kind || "silent", recipient: recipient || "", time: new Date().toISOString() });
     write(EVENT_KEY, list.slice(-24));
     updateEventLog();
   }
   function getSession() {
-    try { return localStorage.getItem("bbs_session") || DEFAULT_USER; }
-    catch (e) { return DEFAULT_USER; }
+    try { return localStorage.getItem("bbs_session") || ""; }
+    catch (e) { return ""; }
   }
   function visitor() {
     try { return localStorage.getItem("bbs_session") || "当前访客"; }
@@ -52,18 +51,20 @@
   function fill(value) {
     return String(value || "").replace(/\{visitor\}/g, visitor());
   }
-  function addEventPm(pm) {
-    var name = getSession();
+  function addEventPm(pm, recipient) {
+    var name = recipient || getSession();
+    if (!name || !pm) return false;
     var map = read(PM_KEY, {});
     if (!map || typeof map !== "object") map = {};
     if (!Array.isArray(map[name])) map[name] = [];
-    for (var i = 0; i < map[name].length; i++) if (map[name][i].id === pm.id) return;
+    for (var i = 0; i < map[name].length; i++) if (map[name][i].id === pm.id) return false;
     map[name].unshift({
       id: pm.id, from: fill(pm.from), time: pm.time, title: fill(pm.title),
       html: fill(pm.html), doc: !!pm.doc
     });
     write(PM_KEY, map);
     try { window.dispatchEvent(new Event("archivepm")); } catch (e) {}
+    return true;
   }
   function currentContext() {
     var parts = location.hash.replace(/^#\/?/, "").split("/");
@@ -72,6 +73,7 @@
     };
     return {
       kind: parts[0] || "index", route: parts[1] || "", page: parts[3] || "1",
+      session: getSession(),
       visited: visited(), stage: summary.stage, typeCount: summary.typeCount,
       evidence: summary.evidence, anchors: summary.anchors, finalReady: summary.finalReady
     };
@@ -91,6 +93,7 @@
   var EVENTS = [
     {
       id: "unread_returns", label: "短消息 / 空标题", kind: "pm",
+      recipient: "唯物主义小刀",
       eligible: function (c) { return has(c, "t_exp1") || has(c, "x_apple_lab"); },
       pm: { id: "evt_unread_returns", from: "右灯", time: "2005-02-21 00:45", title: "（无主题）", html: "<p>这封信刚才显示已读。</p><p>我没有发第二次。你再打开时，先看发件时间有没有变。</p>" },
       toastTitle: "收到一封没有主题的短消息", toastText: "它在收件箱里先显示已读，随后又变回未读。"
@@ -159,14 +162,12 @@
   }
   function showToast(evt) {
     var node = root();
-    if (!node) return;
+    if (!node || !getSession()) return;
     clearRoot();
-    var logged = false;
-    try { logged = !!localStorage.getItem("bbs_session"); } catch (e) {}
     var toast = document.createElement("section");
     toast.className = "archive-toast"; toast.setAttribute("role", "status");
     toast.innerHTML = '<b>' + esc(evt.toastTitle) + '</b><p>' + esc(evt.toastText) + '</p>' +
-      '<a href="' + (logged ? "#/pm" : "#/login") + '">' + (logged ? "打开短消息" : "登录读取") + '</a>' +
+      '<a href="#/pm">打开短消息</a>' +
       '<button type="button" data-event-dismiss>收起</button>';
     node.appendChild(toast);
     toast.querySelector("[data-event-dismiss]").addEventListener("click", clearRoot);
@@ -191,7 +192,13 @@
   function updateEventLog() {
     var node = document.getElementById("event-log-list");
     if (!node) return;
-    var list = records();
+    var source = records(), list = [], current = getSession();
+    for (var r = 0; r < source.length; r++) {
+      var item = source[r];
+      var isPm = item.kind === "pm" || (!item.kind && String(item.label || "").indexOf("短消息") !== -1);
+      if (isPm && (!current || (item.recipient && item.recipient !== current))) continue;
+      list.push(item);
+    }
     if (!list.length) { node.innerHTML = "<span>暂无新消息</span>"; return; }
     var html = "";
     for (var i = list.length - 1; i >= 0 && i >= list.length - 4; i--) {
@@ -214,14 +221,17 @@
     }
     if (monitor) monitor.textContent = (online ? online.textContent : (summary.stage >= 3 ? "5" : "4")) + " 人";
   }
-  function fire(evt) {
-    appendRecord(evt); updateRail();
-    if (evt.kind === "pm") { addEventPm(evt.pm); showToast(evt); }
+  function fire(evt, ctx) {
+    var recipient = evt.kind === "pm" ? (evt.recipient || (ctx && ctx.session) || getSession()) : "";
+    if (evt.kind === "pm" && !addEventPm(evt.pm, recipient)) return false;
+    appendRecord(evt, recipient); updateRail();
+    if (evt.kind === "pm") showToast(evt);
     else if (evt.kind === "modal") showModal(evt);
     else if (evt.kind === "cue") {
       if (window.ArchiveAudio && window.ArchiveAudio.cue) window.ArchiveAudio.cue(evt.cue || "soft");
       else if (window.ArchiveCorruption && window.ArchiveCorruption.showEquivalent) window.ArchiveCorruption.showEquivalent("页面外记录到一次无方向敲击。");
     }
+    return true;
   }
   function evaluate() {
     updateRail(); updateEventLog();
@@ -229,7 +239,13 @@
     if (current.indexOf("ending") === 0 || current.indexOf("replay") === 0 || current.indexOf("thread/t_37") === 0) return;
     var ctx = currentContext();
     for (var i = 0; i < EVENTS.length; i++) {
-      if (!hasRecord(EVENTS[i].id) && EVENTS[i].eligible(ctx)) { fire(EVENTS[i]); break; }
+      var evt = EVENTS[i];
+      if (hasRecord(evt.id) || !evt.eligible(ctx)) continue;
+      /* A PM does not exist until a real member session can receive it.
+         Skipping it here (without recording the event) lets login trigger it
+         later instead of leaking a notification to a visitor. */
+      if (evt.kind === "pm" && (!ctx.session || (evt.recipient && evt.recipient !== ctx.session))) continue;
+      if (fire(evt, ctx)) break;
     }
   }
   function schedule(delay) {
