@@ -11,6 +11,7 @@ function loadUsers(u) {
 loadUsers(window.BBS_STORY && BBS_STORY.users);
 loadUsers(window.BBS_FILLER && BBS_FILLER.users);
 loadUsers(window.BBS_EXPANSION && BBS_EXPANSION.users);
+loadUsers(window.BBS_EXTENDED && BBS_EXTENDED.users);
 var THREADS = {};
 function loadThreads(arr) {
   if (!arr) return;
@@ -20,6 +21,7 @@ loadThreads(BBS.threads);
 loadThreads(window.BBS_STORY && BBS_STORY.threads);
 loadThreads(window.BBS_FILLER && BBS_FILLER.threads);
 loadThreads(window.BBS_EXPANSION && BBS_EXPANSION.threads);
+loadThreads(window.BBS_EXTENDED && BBS_EXTENDED.threads);
 /* The deep branch data is loaded before this engine. Keep its main-thread
    additions available even when an older cached data script ran before the
    core global was exposed. */
@@ -35,6 +37,13 @@ if (window.BBS_STORY && BBS_STORY.pms) {
     if (BBS_STORY.pms[k].drafts) BBS.pms[k].drafts = BBS.pms[k].drafts.concat(BBS_STORY.pms[k].drafts);
   }
 }
+if (window.BBS_EXTENDED && BBS_EXTENDED.pms) {
+  for (var extendedName in BBS_EXTENDED.pms) {
+    if (!BBS.pms[extendedName]) BBS.pms[extendedName] = { inbox: [], drafts: [] };
+    if (BBS_EXTENDED.pms[extendedName].inbox) BBS.pms[extendedName].inbox = BBS.pms[extendedName].inbox.concat(BBS_EXTENDED.pms[extendedName].inbox);
+    if (BBS_EXTENDED.pms[extendedName].drafts) BBS.pms[extendedName].drafts = BBS.pms[extendedName].drafts.concat(BBS_EXTENDED.pms[extendedName].drafts);
+  }
+}
 
 /* ---------- 状态 ---------- */
 function getVisited() {
@@ -45,6 +54,7 @@ function markVisited(id) {
   if (!id) return;
   var v = getVisited();
   if (v.indexOf(id) === -1) { v.push(id); try { localStorage.setItem("bbs_visited", JSON.stringify(v)); } catch (e) {} }
+  if (window.ArchiveEvidenceState) window.ArchiveEvidenceState.refresh();
 }
 function session() { return localStorage.getItem("bbs_session") || ""; }
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -94,15 +104,22 @@ function avatarColor(name) {
 
 /* ---------- 计数器 ---------- */
 function onlineNum() {
+  try {
+    if (localStorage.getItem("bbs_final_ending") === "return") return 6;
+  } catch (e) {}
+  if (window.ArchiveEvidenceState) {
+    var state = window.ArchiveEvidenceState.summary();
+    if (state.stage >= 3 || (state.evidence.identity.length && state.evidence.server.length)) return 5;
+  }
   var v = getVisited();
-  if (v.indexOf("t_eleven") !== -1 || v.indexOf("t_37") !== -1 || v.indexOf("f_night_presence") !== -1) return 5;
+  if (v.indexOf("f_night_presence") !== -1) return 5;
   return 4;
 }
 
 /* ---------- 缺失楼层门禁 ---------- */
 function canSee37() {
+  if (window.ArchiveEvidenceState) return window.ArchiveEvidenceState.canEnterFinal();
   var v = getVisited();
-  if (v.indexOf("t_eleven") !== -1) return true;
   for (var i = 0; i < BBS.docs.length; i++) {
     if (v.indexOf(BBS.docs[i]) === -1) return false;
   }
@@ -126,6 +143,11 @@ function noteRouteTransition(next) {
 
 /* ---------- 渲染·骨架 ---------- */
 function setTier(t) {
+  if (window.ArchiveEvidenceState) {
+    window.ArchiveEvidenceState.refresh();
+    if (window.ArchiveAtmosphereState) window.ArchiveAtmosphereState.apply();
+    return;
+  }
   if (window.ArchiveAtmosphereState) {
     window.ArchiveAtmosphereState.apply(t || 1);
     return;
@@ -169,11 +191,20 @@ function renderChrome(crumbsHtml) {
     sb.innerHTML = '搜索：<input type="text" id="search-input" aria-label="搜索论坛存档" placeholder="输入一个词，例如：右灯"> <button id="search-btn">搜索</button> <span>原站索引不完整，结果可能不止一页</span>';
     var view = document.getElementById("view");
     view.parentNode.insertBefore(sb, view);
-    document.getElementById("search-btn").addEventListener("click", function () {
+    f = sb;
+  }
+  var searchButton = document.getElementById("search-btn");
+  var searchInput = document.getElementById("search-input");
+  if (searchButton && searchButton.getAttribute("data-search-bound") !== "1") {
+    searchButton.setAttribute("data-search-bound", "1");
+    searchButton.addEventListener("click", function () {
       var q = document.getElementById("search-input").value;
       if (q) location.hash = "#/search/" + encodeURIComponent(q.replace(/^\s+|\s+$/g, ""));
     });
-    document.getElementById("search-input").addEventListener("keydown", function (e) {
+  }
+  if (searchInput && searchInput.getAttribute("data-search-bound") !== "1") {
+    searchInput.setAttribute("data-search-bound", "1");
+    searchInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") document.getElementById("search-btn").click();
     });
   }
@@ -194,10 +225,10 @@ function injectNotes() {
   var box = document.createElement("div");
   box.id = "notes-box";
   box.innerHTML =
-    '<div id="notes-head">阅读旁注 ▾</div>' +
+    '<div id="notes-head">站内便笺 ▾</div>' +
     '<div id="notes-body">' +
-      '<div class="notes-sec">原始记录：夜间帖子有一段时间字段没有对齐。</div>' +
-      '<div class="notes-sec">观察：<span class="notes-goal">' + archiveMarginNote() + '</span></div>' +
+      '<div class="notes-sec">站务摘录：旧帖时间按原站格式保留。</div>' +
+      '<div class="notes-sec">便笺：<span class="notes-goal">' + archiveMarginNote() + '</span></div>' +
     '</div>';
   document.body.appendChild(box);
   document.getElementById("notes-head").addEventListener("click", function () {
@@ -210,6 +241,11 @@ function injectNotes() {
 function viewIndex() {
   setTier(1);
   renderChrome("» 论坛首页");
+  var initialView = document.getElementById("view");
+  if (initialView && initialView.getAttribute("data-static-index") === "1") {
+    initialView.removeAttribute("data-static-index");
+    return;
+  }
   var html = '<table class="bbs"><tr><th>版块</th><th class="c" style="width:90px;">主题 / 帖数</th><th style="width:220px;">最后发表</th></tr>';
   for (var i = 0; i < BOARDS.length; i++) {
     var b = BOARDS[i], n = 0, posts = 0, last = null;
@@ -271,7 +307,7 @@ function viewBoard(bid) {
 /* ---------- 楼层渲染 ---------- */
 function postHtml(p, tier) {
   var u = USERS[p.uid] || { reg: "2004-××-××", posts: "??", title: "会员", sig: "" };
-  return '<div class="floor postbit">' +
+  return '<div class="floor postbit" data-post-user="' + esc(p.uid) + '" data-post-time="' + esc(p.time) + '" data-source-floor="' + esc(p.num || "") + '">' +
     '<div class="p-side"><div class="p-avatar" style="background:' + avatarColor(p.uid) + '">' + esc(p.uid.charAt(0)) + '</div>' +
     '<div class="p-uid"><a href="#/user/' + encodeURIComponent(p.uid) + '">' + esc(p.uid) + '</a></div>' +
     '<div class="p-title">' + esc(u.title) + '</div>' +
@@ -282,46 +318,87 @@ function postHtml(p, tier) {
     '</div></div></div>';
 }
 
+function requestedThreadPage() {
+  var parts = location.hash.replace(/^#\/?/, "").split("/");
+  if (parts[2] === "page") return Math.max(1, parseInt(parts[3], 10) || 1);
+  return 1;
+}
+function threadPageHref(id, page) { return "#/thread/" + id + "/page/" + page; }
+function paginationHtml(t, page, pages, position) {
+  if (pages <= 1) return "";
+  var html = '<nav class="thread-pagination thread-pagination-' + position + '" aria-label="主题分页"><span>页次：' + page + '/' + pages + '</span>';
+  if (page > 1) html += '<a class="page-turn" href="' + threadPageHref(t.id, page - 1) + '">上一页</a>';
+  for (var i = 1; i <= pages; i++) {
+    html += i === page ? '<b aria-current="page">' + i + '</b>' : '<a href="' + threadPageHref(t.id, i) + '">' + i + '</a>';
+  }
+  if (page < pages) html += '<a class="page-turn" href="' + threadPageHref(t.id, page + 1) + '">下一页</a>';
+  return html + '</nav>';
+}
+
 /* ---------- 视图·读帖 ---------- */
 function viewThread(tid) {
   var t = THREADS[tid];
   if (!t) { viewSearch(""); return; }
   if (t.id === "t_37" && !canSee37()) {
-    setTier(3);
+    setTier();
     renderChrome("» <a href='#/board/guaitan'>怪谈版</a> » （不存在）");
     document.getElementById("view").innerHTML =
-      '<div class="thread-head-bar">该楼层不存在</div>' +
-      '<div class="quote">版规第十条：本版块没有第37楼。</div>' +
-      '<p class="stamp">（也许还没有到能看到它的时候。）</p>';
+      '<div class="thread-head-bar">指定主题不存在</div>' +
+      '<div class="quote">该主题可能已被删除、移动，或未被当前镜像收录。</div>' +
+      '<p class="stamp"><a href="#/board/guaitan">« 返回怪谈版</a></p>';
     return;
   }
+  if (t.doc) markVisited(t.id);
+  if (t.id === "t_37") markVisited("t_37");
   setTier(t.tier || 1);
   var bname = "怪谈版";
   for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].id === t.board) bname = BOARDS[i].name;
   renderChrome("» <a href='#/board/" + t.board + "'>" + bname + "</a> » " + esc(t.title));
-  if (t.doc) markVisited(t.id);
-  if (t.id === "t_37") markVisited("t_37");
 
   /* 玩家自己发的楼层（通关后） */
   var myFloors = [];
   try { myFloors = JSON.parse(localStorage.getItem("bbs_myfloors") || "[]"); } catch (e) {}
 
+  var pageSize = t.id === "t_main" ? 10 : 9999;
+  var pages = Math.max(1, Math.ceil(t.posts.length / pageSize));
+  var page = Math.min(pages, requestedThreadPage());
+  var start = (page - 1) * pageSize, end = Math.min(t.posts.length, start + pageSize);
   var html = '<div class="thread-head-bar">' + esc(t.title) +
-    '<span class="stamp">查看: ' + (t.views || "--") + '　回复: ' + (t.posts.length - 1) + '</span></div>';
-  for (i = 0; i < t.posts.length; i++) html += postHtml(t.posts[i], t.tier);
-  for (i = 0; i < myFloors.length; i++) if (myFloors[i].tid === t.id) html += postHtml(myFloors[i], t.tier);
+    '<span class="stamp">查看: ' + (t.views || "--") + '　回复: ' + (t.posts.length - 1) + '　页次: ' + page + '/' + pages + '</span></div>';
+  html += paginationHtml(t, page, pages, "top");
+  for (i = start; i < end; i++) html += postHtml(t.posts[i], t.tier);
+  if (page === pages) for (i = 0; i < myFloors.length; i++) if (myFloors[i].tid === t.id) html += postHtml(myFloors[i], t.tier);
+  html += paginationHtml(t, page, pages, "bottom");
+
+  if (t.id === "t_main") {
+    for (i = start; i < end; i++) {
+      if (parseInt(t.posts[i].num, 10) === 35 && window.ArchiveEvidenceState) {
+        window.ArchiveEvidenceState.markAnchor("fifth_voice");
+        break;
+      }
+    }
+  }
 
   /* 回复框。终局帖不再把玩家留在输入框里，结局章节直接接管页面。 */
-  var unlocked = BBS.docs.every(function (d) { return getVisited().indexOf(d) !== -1; });
+  var unlocked = canSee37();
   var isFinalThread = t.id === "t_37";
-  if (!isFinalThread) {
+  if (!isFinalThread && page === pages) {
     html += '<div class="reply-box"><b>快速回复</b>　<span class="reply-note">（本论坛已于2012年关闭）</span>' +
       '<textarea id="reply-text"></textarea><br><button id="reply-btn">发表回复</button></div>';
   }
   var endingId = "";
   if (t.id === "t_37" && window.ArchiveEndings) {
-    endingId = window.ArchiveEndings.pick();
-    html += window.ArchiveEndings.render(endingId);
+    if (window.ArchiveEndings.renderFinale) {
+      html += window.ArchiveEndings.renderFinale();
+      try {
+        var completedEnding = localStorage.getItem("bbs_final_ending") || "";
+        if (window.ArchiveEndings.valid(completedEnding)) endingId = completedEnding;
+      } catch (e2) {}
+    }
+    else {
+      endingId = window.ArchiveEndings.pick();
+      html += window.ArchiveEndings.render(endingId);
+    }
   }
   document.getElementById("view").innerHTML = html;
   if (endingId && window.ArchiveEndings && window.ArchiveEndings.announce) {
@@ -580,6 +657,8 @@ function viewReplay() {
       document.body.classList.remove("t2", "t3");
       document.body.classList.add("t1");
       document.body.setAttribute("data-atmosphere-tier", "1");
+      document.body.setAttribute("data-haunt-stage", "0");
+      document.body.setAttribute("data-archive-depth", "0");
     }
     location.href = location.pathname + location.search + "#/";
   });

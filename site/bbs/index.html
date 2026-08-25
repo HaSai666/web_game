@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0d1011">
+<meta name="theme-color" content="#121918">
+<meta name="description" content="一款伪装成2005年旧论坛存档的中文网页恐怖解谜游戏。追查右灯失踪、第37楼与仍在写入的离线镜像。">
 <link rel="icon" href="data:,">
 <title>莲灯夜话 - 只读档案</title>
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="stylesheet" href="../assets/bbs.css">
-<link rel="stylesheet" href="../assets/atmosphere.css?v=20260824j">
+<link rel="stylesheet" href="../assets/atmosphere.css?v=20260825g">
 </head>
-<body class="t1 forum-page">
+<body class="t1 forum-page" data-haunt-stage="0">
 <div id="archive-ambient" aria-hidden="true">
   <span class="ambient-photo"></span>
   <span class="ambient-shadow"></span>
@@ -20,29 +21,29 @@
   <header id="topbar">
     <div id="logo">
       <span id="logo-name">莲灯夜话</span>
-      <span id="logo-sub">liandeng.net / 怪谈 / 民俗 / 都市传说 / 只读副本</span>
+      <span id="logo-sub">liandeng.net / 怪谈 / 民俗 / 都市传说 / 闲聊灌水</span>
     </div>
     <div id="userbar">加载中……</div>
   </header>
   <div class="forum-grid">
-    <aside id="archive-rail-left" class="archive-rail" aria-label="档案信息">
+    <aside id="archive-rail-left" class="archive-rail" aria-label="论坛信息">
       <div class="rail-block rail-identity">
-        <div class="rail-kicker">离线节点</div>
+        <div class="rail-kicker">论坛信息</div>
         <div class="rail-site">LIANDENG.NET</div>
-        <div class="rail-status"><span class="status-mark"></span><span id="rail-signal">离线镜像</span></div>
+        <div class="rail-status"><span class="status-mark"></span><span id="rail-signal">只读开放</span></div>
       </div>
       <div class="rail-block">
-        <div class="rail-label">档案时间</div>
-        <div class="rail-time">2005.02.27<br><b>03:33 - 03:44</b></div>
+        <div class="rail-label">站点统计</div>
+        <div class="rail-time">主题 <b id="rail-thread-count">--</b><br>帖子 <b id="rail-post-count">--</b></div>
       </div>
       <div class="rail-block rail-facts">
-        <div class="rail-label">字段读取</div>
-        <div class="rail-depth" id="rail-depth">03:33</div>
-        <div class="rail-copy" id="rail-last-read">暂无读取痕迹</div>
+        <div class="rail-label">值班版主</div>
+        <div class="rail-depth" id="rail-depth">青灯</div>
+        <div class="rail-copy" id="rail-last-read">站务问题请在版面留言</div>
       </div>
       <div class="rail-block rail-warning">
-        <div class="rail-label">副本备注</div>
-        <p>镜像保留原站的空白和错位。时间字段仅供比对。</p>
+        <div class="rail-label">版规摘录</div>
+        <p>请勿公开现实地址，不要连续刷屏。旧帖仅供阅读。</p>
       </div>
     </aside>
     <section class="forum-column">
@@ -51,31 +52,57 @@
         <span id="online-stat">在线会员：<b id="online-num">4</b> 人</span>
       </nav>
       <div id="crumbs"></div>
-      <main id="view" aria-live="polite">加载中……</main>
+      <div class="searchform-wrap archive-search">
+        搜索：<input type="text" id="search-input" aria-label="搜索论坛存档" placeholder="输入一个词，例如：右灯">
+        <button id="search-btn" type="button">搜索</button>
+        <span class="search-hint">原站索引不完整，结果可能不止一页</span>
+      </div>
+      <main id="view" aria-live="polite" data-static-index="1">
+        <table class="bbs">
+          <tr><th>版块</th><th class="c" style="width:90px;">主题 / 帖数</th><th style="width:220px;">最后发表</th></tr>
+          <tr>
+            <td><div class="board-name"><a href="#/board/guaitan">怪谈版</a></div><div class="board-desc">深夜故事会。亲身经历也好，编的也好，到了三点都一样。</div></td>
+            <td class="c">17 / 143</td><td class="lastpost"><a href="#/thread/t_return">我回来了。</a><br>2023-06-15 21:10　系统</td>
+          </tr>
+          <tr class="alt">
+            <td><div class="board-name"><a href="#/board/xianliao">闲聊版</a></div><div class="board-desc">灌水、版聊、晒图。白天来这，晚上去隔壁。</div></td>
+            <td class="c">19 / 114</td><td class="lastpost"><a href="#/thread/f_lamp_debt">右灯借走的那盏台灯，后来还回来了吗</a><br>2023-10-12 00:18　档案拾荒者</td>
+          </tr>
+          <tr>
+            <td><div class="board-name"><a href="#/board/zhanwu">站务版</a></div><div class="board-desc">公告、版规、申诉、机房通知。</div></td>
+            <td class="c">11 / 45</td><td class="lastpost"><a href="#/thread/f_guestbook">存档留言簿：请不要把名字写在这里</a><br>2023-11-03 03:44　系统</td>
+          </tr>
+          <tr class="alt">
+            <td><div class="board-name"><span style="color:#999;">贴图版</span></div><div class="board-desc">（2012年机房事故后数据损坏，无法访问）</div></td>
+            <td class="c">-- / --</td><td class="lastpost">-</td>
+          </tr>
+        </table>
+        <div class="quote" style="margin-top:14px;">本论坛已于2012年9月关闭。当前为只读存档。帖子里的<span class="hw">点状词</span>是存档系统自动标记的检索词，点击即可搜索。</div>
+      </main>
       <footer id="footer">
-        <span>莲灯夜话 / 离线镜像 / 字段未校验</span>
-        <span>镜像时标：03:44</span>
+        <span>莲灯夜话旧站镜像　Powered by Discuz! Archive</span>
+        <span>GMT+8, 2023-11-04</span>
       </footer>
     </section>
-    <aside id="archive-rail-right" class="archive-rail" aria-label="同步信息">
+    <aside id="archive-rail-right" class="archive-rail" aria-label="站内动态">
       <div class="rail-block monitor-block">
-        <div class="rail-label">同步状态</div>
-        <div class="monitor-state" id="monitor-state">同步</div>
+        <div class="rail-label">今日在线</div>
+        <div class="monitor-state" id="monitor-state">4 人</div>
         <div class="monitor-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="rail-copy" id="monitor-copy">镜像正在等待请求</div>
+        <div class="rail-copy" id="monitor-copy">最高在线 57 人</div>
       </div>
       <div class="rail-block rail-reflection-block">
-        <div class="rail-label">反射帧</div>
+        <div class="rail-label">随机贴图</div>
         <div class="rail-reflection" aria-hidden="true"><span></span></div>
-        <div class="rail-copy" id="rail-reflection-copy">当前帧没有可辨认的人影</div>
+        <div class="rail-copy" id="rail-reflection-copy">贴图版附件索引损坏</div>
       </div>
       <div class="rail-block event-block">
-        <div class="rail-label">系统记录</div>
-        <div id="event-log-list" class="event-log-list"><span>暂未收到新条目</span></div>
+        <div class="rail-label">站内动态</div>
+        <div id="event-log-list" class="event-log-list"><span>暂无新消息</span></div>
       </div>
       <div class="rail-block rail-footnote">
-        <div class="rail-label">页面备注</div>
-        <p>有些行会在重新打开后换一种排法。</p>
+        <div class="rail-label">友情链接</div>
+        <p>民俗资料馆　旧城夜话<br>南城生活网</p>
       </div>
     </aside>
   </div>
@@ -83,18 +110,21 @@
 <div id="archive-event-root" aria-live="assertive"></div>
 <div id="ending-event-root" aria-live="assertive"></div>
 
-<script src="../assets/bbs-data-core.js?v=20260824i"></script>
-<script src="../assets/bbs-data-story.js?v=20260824i"></script>
-<script src="../assets/bbs-data-filler.js?v=20260824"></script>
-<script src="../assets/bbs-data-expansion.js?v=20260824i"></script>
-<script src="../assets/bbs-data-branches2.js?v=20260824n"></script>
-<script src="../assets/atmosphere-state.js?v=2"></script>
-<script src="../assets/endings.js?v=20260824j"></script>
-<script src="../assets/bbs.js?v=20260824l"></script>
-<script src="../assets/bbs-enhance.js?v=20260824j"></script>
-<script src="../assets/archive-events.js?v=12"></script>
-<script src="../assets/haunt.js?v=20260824j"></script>
-<script src="../assets/audio.js?v=20260824i"></script>
-<script src="../assets/scare.js?v=20260824i"></script>
+<script defer src="../assets/bbs-data-core.js?v=20260824i"></script>
+<script defer src="../assets/bbs-data-story.js?v=20260824i"></script>
+<script defer src="../assets/bbs-data-filler.js?v=20260824"></script>
+<script defer src="../assets/bbs-data-expansion.js?v=20260824i"></script>
+<script defer src="../assets/bbs-data-branches2.js?v=20260824n"></script>
+<script defer src="../assets/bbs-data-extended-story.js?v=20260825g"></script>
+<script defer src="../assets/evidence-state.js?v=20260825g"></script>
+<script defer src="../assets/atmosphere-state.js?v=20260825g"></script>
+<script defer src="../assets/endings.js?v=20260825g"></script>
+<script defer src="../assets/bbs.js?v=20260825g"></script>
+<script defer src="../assets/bbs-enhance.js?v=20260825g"></script>
+<script defer src="../assets/archive-events.js?v=20260825g"></script>
+<script defer src="../assets/haunt.js?v=20260825g"></script>
+<script defer src="../assets/corruption.js?v=20260825g"></script>
+<script defer src="../assets/audio.js?v=20260825g"></script>
+<script defer src="../assets/scare.js?v=20260825g"></script>
 </body>
 </html>

@@ -16,6 +16,10 @@
       code: "ECHO / 03:44",
       title: "页面没有把你送回去",
       lede: "你没有替任何人占位。你只是读到了最后一页，但最后一页记住了你。",
+      climax: [
+        "你没有回应第五声，也没有替页面删除任何名字。第37楼安静了四秒，随后把同一句回复写进你读过的每一篇旧帖。",
+        "你回到首页。颜色和版式都恢复正常，只有搜索框里留着四个你从未输入的字：到你了。"
+      ],
       plot: [
         "03:44，右灯的账号被冻结，主帖从36楼直接跳到38楼。你打开第37楼时，服务器没有返回正文，只返回了一个读取成功的空壳。",
         "那四个字不在正文里。它们出现在浏览器准备绘制页面的间隙，像有人先写好，再把纸抽走。你看见的不是删除，而是有人把内容从页面里面挪到了页面外面。",
@@ -37,6 +41,10 @@
       code: "OCCUPIED / 03:44",
       title: "有人替你占了那一楼",
       lede: "你写下了一句回复。服务器替你把它归档成了一个人。",
+      climax: [
+        "你回应了第五声，并站进那个空位置。论坛先删掉你的头像，再删掉用户名，最后只留下你刚写的那句话。",
+        "主帖的回复数增加一，楼层从36跳到37。致谢页作者栏保持空白，因为你的名字已经被用来填满页面。"
+      ],
       plot: [
         "你把所有散落的记录拼回主帖，在回复框里留下自己的话。发送成功的提示只闪了一下，随后楼层号从问号变成37。",
         "你的文字仍然在主帖里，可作者栏不再显示你的账号。下一次打开时，系统把回复的时间改成了右灯断更的那一分钟。",
@@ -58,6 +66,10 @@
       code: "SEALED / 03:44",
       title: "版主把页面重新命名",
       lede: "青灯没有删除第37楼。她只是把门改成了一个文件名。",
+      climax: [
+        "你把记录交给青灯并保留空位。怪谈版、闲聊版和站务版依次变为只读，成片乱码终于停止。",
+        "青灯发来最后一封短消息：机房门已经打开，她第一次听见风扇停下。消息发出后，她的账号显示离线。"
+      ],
       plot: [
         "回收站里那条记录没有删除人，也没有删除时间。只有content_len=4，像有人在服务器断电前留下了一把很短的钥匙。",
         "你用青灯的账号打开它，页面先显示一行空白，再把标题改成了一个无法复制的名字。那一刻，论坛所有版块的最后访问时间同时跳到了03:44。",
@@ -79,6 +91,10 @@
       code: "RETURN / 03:44",
       title: "主页多了一位访客",
       lede: "右灯没有从收件箱回来。他从你的返回动作里回来。",
+      climax: [
+        "你回应第五声，把记录交还右灯。首页立刻出现一篇刚刚发表的新主题，作者头像是那盏借走后没有归还的台灯。",
+        "在线人数从5变成6。第六个名字没有显示，主帖却已经有人回复：我回来了。"
+      ],
       plot: [
         "你读完那封03:36的短消息，回到论坛首页。在线人数没有变化，首页也没有弹出欢迎语。只有一条旧帖的最后回复时间，从很多年前变成了刚刚。",
         "你再次打开第37楼时，右灯的短消息仍然标记为未读。系统知道你看过它，却拒绝承认那次读取发生过。",
@@ -98,22 +114,26 @@
       id: "silent",
       label: "静默结局",
       code: "SILENT / 03:44",
-      title: "四个字被留在屏幕外",
-      lede: "你没有听见声音，页面也没有闪烁。最安静的结局，往往最难关掉。",
+      title: "所有异常都被清理干净",
+      lede: "你删除了自己的名字和查询记录。论坛看起来终于恢复正常。",
+      climax: [
+        "你没有回应第五声，并要求镜像删除自己的名字。背景、乱码、错位头像和异常在线人数依次消失，论坛回到第一次打开时的样子。",
+        "致谢结束后，浏览器标题没有恢复。那里仍显示：还有1人正在输入。"
+      ],
       plot: [
-        "你从搜索结果进入第37楼。页面按顺序加载了标题、时间和照片，唯独正文保持空白。搜索框却记得你输入过的那四个字，并且拒绝被清空。",
-        "你刷新页面，四个字仍然在那里。你换到首页，它们不再显示，可输入框的光标还在等待下一次回车，像有人知道你迟早会再搜一次。",
-        "没有脚步，没有弹窗，没有突然出现的脸。只有键盘上的回车键，在你没有触碰它的时候，自己发出了一声很轻的响。"
+        "你让镜像删除本轮查询、本地名字和所有引用。页面逐条确认清理完成，旧帖里不再出现当前访客，搜索框也终于变空。",
+        "你刷新首页，在线人数回到4，贴图预览只剩损坏占位，论坛没有留下任何能证明你来过的记录。",
+        "没有脚步，没有弹窗，也没有突然出现的脸。致谢页关闭后，浏览器标题仍说还有1人正在输入。"
       ],
-      reveal: "第37楼的内容不在网页里。搜索框才是它真正的正文。",
+      reveal: "删除清掉的是你的索引，不是正在使用这个索引的位置。",
       records: [
-        ["查询缓存", "保留"],
-        ["正文", "空"],
-        ["索引", "继续写入"]
+        ["查询缓存", "已清理"],
+        ["访客字段", "已删除"],
+        ["正在输入", "1"]
       ],
-      closing: "四个字被留在屏幕外。它们正在等一个新的屏幕。",
-      after: "不要在同一台设备上重复搜索。镜像会把两次查询当成两个人。",
-      thanks: "感谢你读完这条静默记录。关掉声音并不会让它消失，真正有用的是关掉页面。"
+      closing: "所有异常都被清理干净。除了那一个仍在输入的人。",
+      after: "如果你重新开始调查，论坛不会记得这个名字。输入的人会。",
+      thanks: "感谢你读完这条静默记录。页面没有保留你的公开信息，只有一个未完成的输入状态。"
     }
   };
 
@@ -158,6 +178,8 @@
   }
 
   function pick() {
+    var finalChoice = localStorage.getItem("bbs_final_ending") || "";
+    if (valid(finalChoice)) return finalChoice;
     var signal = localStorage.getItem("bbs_ending_signal") || "";
     if (signal === "sealed" || (localStorage.getItem("bbs_session") === "青灯" && has("del_37"))) return "sealed";
     if (signal === "occupied" || hasReply()) return "occupied";
@@ -244,6 +266,7 @@
       '</header>' +
       '<div class="ending-divider" aria-hidden="true"><i></i><i></i><i></i></div>' +
       '<div class="ending-content">' +
+        '<section class="ending-section ending-climax"><h3>最后发生的事</h3>' + renderParagraphs(ending.climax || [], "ending-climax-story") + '</section>' +
         '<section class="ending-section"><h3>发生了什么</h3>' + renderParagraphs(ending.plot, "ending-story") + '</section>' +
         '<section class="ending-section ending-reveal"><h3>你现在知道的事</h3><p>' + esc(ending.reveal) + '</p></section>' +
         renderBranchTraces() +
@@ -255,6 +278,100 @@
       '<div class="ending-actions"><a class="ending-primary" href="#/ending/' + esc(ending.id) + '">再次读取本结局</a><a href="#/ending">查看结局档案</a><a href="#/replay">重新开始调查</a><a href="#/">回到论坛首页</a></div>' +
       '</section>';
   }
+
+  function finalValue(key) {
+    try { return localStorage.getItem("bbs_final_" + key) || ""; }
+    catch (e) { return ""; }
+  }
+  function finalChoices() {
+    return { answer: finalValue("answer"), position: finalValue("position"), record: finalValue("record") };
+  }
+  function endingFromChoices(choices) {
+    choices = choices || finalChoices();
+    if (choices.answer === "answer" && choices.position === "occupy") return "occupied";
+    if (choices.answer === "silent" && choices.position === "keep" && choices.record === "qingdeng") return "sealed";
+    if (choices.answer === "answer" && choices.position === "keep" && choices.record === "rightlamp") return "return";
+    if (choices.answer === "silent" && choices.position === "keep" && choices.record === "erase") return "silent";
+    return "echo";
+  }
+  function choiceLedger(choices) {
+    var rows = [];
+    if (choices.answer) rows.push(["第五声", choices.answer === "answer" ? "已回应" : "没有回应"]);
+    if (choices.position) rows.push(["空位置", choices.position === "keep" ? "保留" : "写入当前访客"]);
+    if (choices.record) rows.push(["记录去向", choices.record === "qingdeng" ? "交给青灯" : (choices.record === "rightlamp" ? "交还右灯" : "删除当前访客姓名")]);
+    if (!rows.length) return "";
+    var html = '<dl class="finale-ledger">';
+    for (var i = 0; i < rows.length; i++) html += '<div><dt>' + esc(rows[i][0]) + '</dt><dd>' + esc(rows[i][1]) + '</dd></div>';
+    return html + '</dl>';
+  }
+  function renderFinale() {
+    var completed = finalValue("ending");
+    if (valid(completed)) {
+      return '<section class="finale-terminal finale-terminal-complete" data-final-step="complete" aria-labelledby="finale-title">' +
+        '<div class="finale-signal">03:44　读取结束</div><h2 id="finale-title">第37楼已经关闭</h2>' +
+        '<p>你的三次决定已经写入本轮镜像。下面是这条路线真正发生的结局。</p></section>' + render(completed);
+    }
+
+    var choices = finalChoices();
+    var ledger = choiceLedger(choices), step = !choices.answer ? "answer" : (!choices.position ? "position" : (!choices.record ? "record" : "resolve"));
+    var html = '<section class="finale-terminal" data-final-step="' + step + '" aria-labelledby="finale-title">' +
+      '<div class="finale-signal">03:44　未归档回复</div>';
+    if (step === "answer") {
+      html += '<h2 id="finale-title">房间里传来第五声</h2><p>它没有报名字，只停在你这一侧，等一次确认。</p>' +
+        '<div class="finale-choice"><button type="button" data-final-choice="answer" data-final-value="answer">回应：我在</button><button type="button" data-final-choice="answer" data-final-value="silent">保持沉默</button></div>';
+    } else if (step === "position") {
+      html += '<h2 id="finale-title">页面仍留着一个空位置</h2><p>楼层号已经出现，作者栏还没有名字。你只能决定它是否继续空着。</p>' + ledger +
+        '<div class="finale-choice"><button type="button" data-final-choice="position" data-final-value="keep">保留空位置</button><button type="button" data-final-choice="position" data-final-value="occupy">写入我的名字</button></div>';
+    } else if (step === "record") {
+      html += '<h2 id="finale-title">最后一份记录必须有去处</h2><p>谁保管它，谁就会成为下一次读取时的发件人。</p>' + ledger +
+        '<div class="finale-choice finale-choice-three"><button type="button" data-final-choice="record" data-final-value="qingdeng">交给青灯</button><button type="button" data-final-choice="record" data-final-value="rightlamp">交还右灯</button><button type="button" data-final-choice="record" data-final-value="erase">删除我的名字</button></div>';
+    } else {
+      var pending = ENDINGS[endingFromChoices(choices)];
+      html += '<h2 id="finale-title">页面已经接受你的决定</h2><p>乱码正在退到表格边缘，最后一行只剩一个可以读取的标题。</p>' + ledger +
+        '<div class="finale-preview"><span>即将归档</span><b>' + esc(pending.label) + '</b></div>' +
+        '<div class="finale-choice"><button type="button" data-final-resolve>读取真正的结局</button></div>';
+    }
+    return html + '<p class="finale-note">选择会保留到本轮调查结束。重新开始调查后可以走另一条路线。</p></section>';
+  }
+
+  function replaceFinale() {
+    var current = document.querySelector(".finale-terminal");
+    if (!current) return;
+    var holder = document.createElement("div");
+    holder.innerHTML = renderFinale();
+    var fragment = document.createDocumentFragment();
+    while (holder.firstChild) fragment.appendChild(holder.firstChild);
+    current.parentNode.replaceChild(fragment, current);
+    var title = document.getElementById("finale-title");
+    if (title) { title.setAttribute("tabindex", "-1"); title.focus(); }
+  }
+
+  document.addEventListener("click", function (event) {
+    var choice = event.target && event.target.closest ? event.target.closest("[data-final-choice]") : null;
+    var resolve = event.target && event.target.closest ? event.target.closest("[data-final-resolve]") : null;
+    if (choice) {
+      var key = choice.getAttribute("data-final-choice"), value = choice.getAttribute("data-final-value");
+      try { localStorage.setItem("bbs_final_" + key, value); } catch (e) {}
+      if (document.body) document.body.setAttribute("data-final-decision", key + ":" + value);
+      if (window.ArchiveAudio && window.ArchiveAudio.cue) window.ArchiveAudio.cue(key === "answer" && value === "answer" ? "fifth" : (key === "position" && value === "occupy" ? "deep" : "key"));
+      try { window.dispatchEvent(new CustomEvent("archivechoice", { detail: { key: "final:" + key, value: value } })); }
+      catch (e2) {}
+      replaceFinale();
+      event.preventDefault();
+    } else if (resolve) {
+      var endingId = endingFromChoices(finalChoices());
+      try {
+        localStorage.setItem("bbs_final_ending", endingId);
+        localStorage.setItem("bbs_ending_signal", endingId);
+      } catch (e3) {}
+      if (document.body) document.body.setAttribute("data-ending", endingId);
+      replaceFinale();
+      if (window.ArchiveEndings && window.ArchiveEndings.announce) window.ArchiveEndings.announce(endingId);
+      try { window.dispatchEvent(new CustomEvent("archiveending", { detail: { id: endingId } })); }
+      catch (e4) {}
+      event.preventDefault();
+    }
+  });
 
   function renderGallery() {
     var html = '<section class="ending-gallery" aria-labelledby="ending-gallery-title">' +
@@ -307,7 +424,10 @@
     if (open) open.addEventListener("click", function () {
       close();
       var target = document.querySelector(".ending-screen");
-      if (target && target.scrollIntoView) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (target && target.scrollIntoView) {
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      }
     });
     if (stay) stay.addEventListener("click", close);
     curtain.addEventListener("click", function (ev) { if (ev.target === curtain) close(); });
@@ -322,6 +442,8 @@
     list: ENDINGS,
     pick: pick,
     render: render,
+    renderFinale: renderFinale,
+    endingFromChoices: endingFromChoices,
     renderGallery: renderGallery,
     announce: announce,
     valid: valid,

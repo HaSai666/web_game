@@ -42,6 +42,7 @@
     return parts[0] === "thread" ? (parts[1] || "") : "";
   }
   function tier() {
+    if (window.ArchiveEvidenceState) return window.ArchiveEvidenceState.get();
     var name = String(document.body && document.body.className || "");
     if (name.indexOf("t3") !== -1) return 3;
     if (name.indexOf("t2") !== -1) return 2;
@@ -99,7 +100,7 @@
     else if (has("f_granny_letter")) copy.textContent = "信纸折痕里没有被灯照到的地方";
     else if (has("f_lamp_debt")) copy.textContent = "灯线伸到画面以外，仍然通着电";
     else if (has("f_audio_log") || has("f_door_watch")) copy.textContent = "右下角的阴影没有对应光源";
-    else copy.textContent = "当前帧没有可辨认的人影";
+    else copy.textContent = "贴图版附件索引损坏";
   }
 
   function updateTyping() {
@@ -122,7 +123,7 @@
     }
     var text = node.querySelector("span");
     if (text) {
-      if (has("t_37")) text.textContent = "第37楼仍在输入";
+      if (has("t_37")) text.textContent = "一名未登记用户仍在输入";
       else if (has("f_reply_shadow")) text.textContent = "未登记用户正在补全一句话";
       else if (has("f_editor_cache")) text.textContent = "光标正在等待下一次回车";
       else if (has("f_phone_line")) text.textContent = "一条没有号码的线路正在占线";
@@ -230,6 +231,9 @@
       updateReflection();
       showWhisper(choice.getAttribute("data-whisper-" + value) || (value === "look" ? "你看过门牌背面了。" : "页面记住了你没有看。"));
       pulse(value === "look" || value === "open" || value === "call" ? "deep" : "soft");
+      if (window.ArchiveEvidenceState) window.ArchiveEvidenceState.refresh();
+      try { window.dispatchEvent(new CustomEvent("archivechoice", { detail: { key: key, value: value } })); }
+      catch (e) { try { window.dispatchEvent(new Event("archivechoice")); } catch (e2) {} }
     }
     var saved = "";
     try { saved = localStorage.getItem(key) || ""; } catch (e) {}
@@ -259,7 +263,7 @@
       showWhisper(branchCount() >= 3 ? "反射帧在你没有操作时更新了一次。" : "页面边缘刚才少了一把椅子。");
       pulse("soft");
       setTimeout(function () { document.body.classList.remove("haunt-looked-back"); }, 4600);
-    }, 12000);
+    }, 480000);
   }
 
   function refresh() {

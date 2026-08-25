@@ -40,7 +40,7 @@
   }
   function allThreads() {
     var seen = {}, out = [];
-    var groups = [window.BBS && BBS.threads, window.BBS_STORY && BBS_STORY.threads, window.BBS_FILLER && BBS_FILLER.threads, window.BBS_EXPANSION && BBS_EXPANSION.threads];
+    var groups = [window.BBS && BBS.threads, window.BBS_STORY && BBS_STORY.threads, window.BBS_FILLER && BBS_FILLER.threads, window.BBS_EXPANSION && BBS_EXPANSION.threads, window.BBS_EXTENDED && BBS_EXTENDED.threads];
     for (var g = 0; g < groups.length; g++) {
       var list = groups[g] || [];
       for (var i = 0; i < list.length; i++) {
@@ -52,7 +52,8 @@
     return out;
   }
   function canSeeFinal() {
-    if (hasSeen("t_eleven") || hasSeen("t_37")) return true;
+    if (window.ArchiveEvidenceState) return window.ArchiveEvidenceState.canEnterFinal();
+    if (hasSeen("t_37")) return true;
     var docs = (window.BBS && BBS.docs) || [];
     var v = visited();
     for (var i = 0; i < docs.length; i++) if (v.indexOf(docs[i]) === -1) return false;
@@ -156,7 +157,20 @@
   function decorateRelated(tid) {
     var view = document.getElementById("view");
     if (!view || tid === "t_37" || view.querySelector(".related-records")) return;
-    var links = RELATED[tid] || [];
+    var links = (RELATED[tid] || []).slice();
+    var source = threadById(tid);
+    var authoredLinks = source && Array.isArray(source.related) ? source.related : [];
+    for (var r = 0; r < authoredLinks.length; r++) {
+      var related = threadById(authoredLinks[r]);
+      if (!related) continue;
+      var exists = false;
+      for (var x = 0; x < links.length; x++) if (links[x][0] === related.id) exists = true;
+      if (!exists) {
+        var relation = related.board !== source.board ? "跨版提到" : (String(related.time || "") < String(source.time || "") ? "此前讨论" : "后续记录");
+        if (related.hidden) relation = "附件引用";
+        links.push([related.id, relation]);
+      }
+    }
     if (!links.length) return;
     var panel = document.createElement("aside");
     panel.className = "related-records";
@@ -207,10 +221,9 @@
     return whispers[idx];
   }
   function setDepth() {
-    var n = docCount(), depth = n >= 24 ? 3 : (n >= 8 ? 2 : 1);
-    /* Progress can only deepen the colour grade. Route changes must not undo it. */
-    if (window.ArchiveAtmosphereState) depth = window.ArchiveAtmosphereState.apply(depth);
-    document.body.setAttribute("data-archive-depth", depth);
+    var n = docCount(), stage = window.ArchiveEvidenceState ? window.ArchiveEvidenceState.refresh() : (n >= 24 ? 3 : (n >= 8 ? 2 : 1));
+    var depth = stage >= 4 ? 3 : (stage >= 2 ? 2 : 1);
+    if (!window.ArchiveEvidenceState) document.body.setAttribute("data-archive-depth", depth);
     var presence = document.getElementById("archive-presence");
     if (!presence) {
       presence = document.createElement("span");
@@ -229,14 +242,14 @@
     try { level = parseInt(localStorage.getItem("bbs_hint_level") || "0", 10) || 0; } catch (e) {}
     var collapsed = false, savedCollapse = null;
     try { savedCollapse = localStorage.getItem("bbs_notes_collapsed"); } catch (e2) {}
-    collapsed = savedCollapse === "1" || (savedCollapse === null && window.innerWidth < 760);
+    collapsed = savedCollapse === "1" || savedCollapse === null;
     old.innerHTML =
-      '<div id="notes-head" role="button" tabindex="0" aria-expanded="' + (!collapsed) + '">阅读旁注 <span class="notes-mark" aria-hidden="true">▦</span>　' + (collapsed ? "▸" : "▾") + '</div>' +
+      '<div id="notes-head" role="button" tabindex="0" aria-expanded="' + (!collapsed) + '">站内便笺 <span class="notes-mark" aria-hidden="true">□</span>　' + (collapsed ? "▸" : "▾") + '</div>' +
       '<div id="notes-body"' + (collapsed ? ' style="display:none"' : '') + '>' +
-      '<div class="notes-sec">原始记录：夜间帖子有一段时间字段没有对齐。</div>' +
-      '<div class="notes-sec">观察：<span class="notes-goal">' + archiveObservation(n) + '</span></div>' +
+      '<div class="notes-sec">站务摘录：旧帖时间按原站格式保留。</div>' +
+      '<div class="notes-sec">便笺：<span class="notes-goal">' + archiveObservation(n) + '</span></div>' +
       '<div class="notes-sec notes-recent">最近打开：' + esc((localStorage.getItem("bbs_last_thread") || "暂无")) + '</div>' +
-      '<button type="button" class="notes-hint" id="notes-hint">' + (level ? "展开旧注" : "留下旁注") + '</button>' +
+      '<button type="button" class="notes-hint" id="notes-hint">' + (level ? "翻到下一页" : "查看旧便笺") + '</button>' +
       '<div class="notes-sec notes-recent" id="notes-hint-text"' + (level ? '' : ' style="display:none"') + '>' + (level ? esc(archiveWhisper(n, level)) : '') + '</div>' +
       '</div>';
     var head = document.getElementById("notes-head");
@@ -256,12 +269,18 @@
       try { localStorage.setItem("bbs_hint_level", String(level)); } catch (e) {}
       var target = document.getElementById("notes-hint-text");
       if (target) { target.style.display = "block"; target.textContent = archiveWhisper(n, level); }
-      hint.textContent = level >= 6 ? "旧注已展开" : "展开旧注";
+      hint.textContent = level >= 6 ? "便笺到此结束" : "翻到下一页";
     });
   }
   function ensureChrome() {
     var sub = document.getElementById("logo-sub");
-    if (sub) sub.textContent = "liandeng.net / 怪谈 / 民俗 / 都市传说 / 只读副本";
+    if (sub) sub.textContent = "liandeng.net / 怪谈 / 民俗 / 都市传说 / 闲聊灌水";
+    var portalThreads = allThreads(), portalPosts = 0;
+    for (var p = 0; p < portalThreads.length; p++) portalPosts += (portalThreads[p].posts || []).length;
+    var threadCount = document.getElementById("rail-thread-count");
+    var postCount = document.getElementById("rail-post-count");
+    if (threadCount) threadCount.textContent = String(portalThreads.length);
+    if (postCount) postCount.textContent = String(portalPosts);
     var form = document.querySelector(".searchform-wrap");
     if (form) {
       form.classList.add("archive-search");
@@ -271,11 +290,12 @@
       if (hint) { hint.className = "search-hint"; hint.textContent = "原站索引不完整，结果可能不止一页"; }
     }
     var footer = document.getElementById("footer");
-    if (footer) footer.innerHTML = '<span>莲灯夜话 / 离线镜像 / 字段未校验</span><span>镜像时标：03:44</span>';
+    if (footer) footer.innerHTML = '<span>莲灯夜话旧站镜像　Powered by Discuz! Archive</span><span>GMT+8, 2023-11-04</span>';
   }
   function addRoutePresence(tid) {
     var view = document.getElementById("view");
     if (!view || view.querySelector(".presence-warning")) return;
+    if (tid === "t_37" && !view.querySelector(".floor.postbit")) return;
     var text = "";
     var n = docCount();
     if (tid === "t_37") text = "作者字段为空。页面把这一行留在原位。";
@@ -380,9 +400,13 @@
       if (author.indexOf(q) !== -1) score += 9;
       if (content.indexOf(q) !== -1) score += Math.min(12, content.split(q).length - 1);
       if (window.BBS && BBS.routes && BBS.routes[query] === t.id) score += 20;
+      /* The public index still routes this phrase to the old moderation
+         notice. Only after all five evidence threads converge may the same
+         query surface the missing record itself. */
+      if (t.id === "t_37" && canSeeFinal() && q === norm("第37楼")) score += 36;
       if (score) results.push({ type: "thread", item: t, score: score, body: body });
     }
-    var users = Object.assign({}, (window.BBS && BBS.users) || {}, (window.BBS_STORY && BBS_STORY.users) || {}, (window.BBS_FILLER && BBS_FILLER.users) || {}, (window.BBS_EXPANSION && BBS_EXPANSION.users) || {});
+    var users = Object.assign({}, (window.BBS && BBS.users) || {}, (window.BBS_STORY && BBS_STORY.users) || {}, (window.BBS_FILLER && BBS_FILLER.users) || {}, (window.BBS_EXPANSION && BBS_EXPANSION.users) || {}, (window.BBS_EXTENDED && BBS_EXTENDED.users) || {});
     for (var name in users) {
       if (norm(name).indexOf(q) !== -1) results.push({ type: "user", name: name, score: 18, body: users[name].sig || "用户资料" });
     }
