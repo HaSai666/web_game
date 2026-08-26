@@ -72,15 +72,27 @@ function markPmRead(id) {
 function eventPmsFor(name) {
   var map = {};
   try { map = JSON.parse(localStorage.getItem("bbs_event_pms") || "{}"); } catch (e) {}
-  return map && Array.isArray(map[name]) ? map[name] : [];
+  return map && Array.isArray(map[name]) ? map[name].slice() : [];
 }
 function pmDataFor(name) {
   var base = BBS.pms[name] || { inbox: [], drafts: [] };
-  return { inbox: eventPmsFor(name).concat(base.inbox || []), drafts: (base.drafts || []).slice() };
+  /* Keep the original mailbox immutable. Event messages are a separate
+     delivery stream so a new warning cannot shift the meaning of #/pm/0. */
+  return {
+    inbox: (base.inbox || []).slice(),
+    newDeliveries: eventPmsFor(name),
+    drafts: (base.drafts || []).slice()
+  };
 }
 function pmUnreadCount(name) {
-  var data = pmDataFor(name), n = 0;
-  for (var i = 0; i < data.inbox.length; i++) if (!pmWasRead(data.inbox[i].id)) n++;
+  var data = pmDataFor(name), n = 0, seen = {};
+  var lists = [data.inbox, data.newDeliveries];
+  for (var l = 0; l < lists.length; l++) for (var i = 0; i < lists[l].length; i++) {
+    var id = lists[l][i].id;
+    if (seen[id]) continue;
+    seen[id] = true;
+    if (!pmWasRead(id)) n++;
+  }
   return n;
 }
 
@@ -200,21 +212,7 @@ function renderChrome(crumbsHtml) {
     '<a href="#/">论坛首页</a> | <a href="#/board/guaitan">怪谈版</a> | <a href="#/board/xianliao">闲聊版</a> | <a href="#/board/zhanwu">站务版</a> | 排行榜' + endingLink;
   document.getElementById("online-num").textContent = onlineNum();
   document.getElementById("crumbs").innerHTML = '<a href="#/">莲灯夜话</a> ' + crumbsHtml;
-  var s = session();
-  var ub = document.getElementById("userbar");
-  if (s) {
-    var recycleLink = (s === "青灯") ? ' | <a href="#/recycle">回收站</a>' : "";
-    var unread = pmUnreadCount(s);
-    var pmLabel = "短消息" + (unread ? " <span class='pm-unread'>(" + unread + ")</span>" : "");
-    ub.innerHTML = "您好：<b>" + esc(s) + "</b>　<a href='#/pm'>" + pmLabel + "</a>" + recycleLink + " | <a href='#' id='logout-link'>退出</a>";
-    document.getElementById("logout-link").addEventListener("click", function (e) {
-      e.preventDefault();
-      localStorage.removeItem("bbs_session");
-      location.hash = "#/"; location.reload();
-    });
-  } else {
-    ub.innerHTML = "您好：游客　<a href='#/login'>登录</a> | <span title='注册已关闭'>注册</span>";
-  }
+  renderUserbar();
   var f = document.querySelector(".searchform-wrap");
   if (!f) {
     var sb = document.createElement("div");
@@ -240,6 +238,26 @@ function renderChrome(crumbsHtml) {
     });
   }
   injectNotes();
+}
+
+function renderUserbar() {
+  var s = session();
+  var ub = document.getElementById("userbar");
+  if (!ub) return;
+  if (s) {
+    var recycleLink = (s === "青灯") ? ' | <a href="#/recycle">回收站</a>' : "";
+    var unread = pmUnreadCount(s);
+    var pmLabel = "短消息" + (unread ? " <span class='pm-unread'>(未读 " + unread + ")</span>" : "");
+    ub.innerHTML = "您好：<b>" + esc(s) + "</b>　<a href='#/pm'>" + pmLabel + "</a>" + recycleLink + " | <a href='#' id='logout-link'>退出</a>";
+    var logout = document.getElementById("logout-link");
+    if (logout) logout.addEventListener("click", function (e) {
+      e.preventDefault();
+      localStorage.removeItem("bbs_session");
+      location.hash = "#/"; location.reload();
+    });
+  } else {
+    ub.innerHTML = "您好：游客　<a href='#/login'>登录</a> | <span title='注册已关闭'>注册</span>";
+  }
 }
 
 /* ---------- 阅读旁注 ---------- */
@@ -431,6 +449,11 @@ function viewThread(tid) {
     }
   }
   document.getElementById("view").innerHTML = html;
+  /* Paint deterministic corruption immediately after the thread DOM exists.
+     The scheduled listener still handles later evidence changes, but the
+     reader should not be able to click past the visible 37-floor flood during
+     the short gap between route render and the next timer tick. */
+  if (window.ArchiveCorruption && window.ArchiveCorruption.refresh) window.ArchiveCorruption.refresh();
   if (endingId && window.ArchiveEndings && window.ArchiveEndings.announce) {
     window.ArchiveEndings.announce(endingId);
   }
@@ -565,43 +588,79 @@ function viewLogin(msg, rememberedName) {
 }
 
 /* ---------- 视图·短消息 ---------- */
+function pmListFor(data, box) {
+  if (box === "drafts") return data.drafts;
+  if (box === "new") return data.newDeliveries;
+  return data.inbox;
+}
+function pmHref(box, index, pm) {
+  if (box === "drafts") return "#/pm/drafts/" + index;
+  /* New deliveries are addressed by their immutable event id. A later
+     warning may be inserted above them, but its old link still opens the
+     same record. Numeric links remain accepted for old cached pages. */
+  if (box === "new") return "#/pm/new/" + encodeURIComponent(pm && pm.id ? pm.id : index);
+  return "#/pm/" + index;
+}
+function pmTableHtml(show, box) {
+  var isDraft = box === "drafts", isNew = box === "new";
+  var html = '<table class="bbs pm-list pm-list-' + box + '"><tr><th>标题</th><th class="c" style="width:120px;">' + (isDraft ? "类型" : "发件人") + '</th><th style="width:170px;">时间</th></tr>';
+  if (!show.length) return html + '<tr><td colspan="3" class="c pm-empty-cell">（空）</td></tr></table>';
+  for (var i = 0; i < show.length; i++) {
+    var pm = show[i], pmRead = pmWasRead(pm.id), rowClasses = [];
+    if (i % 2) rowClasses.push("alt");
+    if (isNew) rowClasses.push("pm-new-row");
+    if (pm.id === "pm_youdeng" && !pmRead) rowClasses.push("pm-critical-row");
+    var unreadLabel = pmRead ? "" : '<span class="pm-unread">' + (pm.id === "pm_youdeng" ? "未读 · 投递早于本次登录　" : (isNew ? "未读 · 新投递　" : "未读　")) + '</span>';
+    html += '<tr' + (rowClasses.length ? ' class="' + rowClasses.join(" ") + '"' : '') + '><td>' + unreadLabel + '<a href="' + pmHref(box, i, pm) + '">' + esc(pm.title) + '</a></td>' +
+      '<td class="c">' + (isDraft ? "草稿" : esc(pm.from)) + '</td><td class="pm-time">' + esc(pm.time) + '</td></tr>';
+  }
+  return html + '</table>';
+}
+function pmSectionHtml(show, box, title, note) {
+  return '<section class="pm-section pm-section-' + box + '" aria-labelledby="pm-section-' + box + '">' +
+    '<div class="pm-section-head"><b id="pm-section-' + box + '">' + title + ' (' + show.length + ')</b><span>' + note + '</span></div>' +
+    pmTableHtml(show, box) + '</section>';
+}
 function viewPM(box, idx) {
   var s = session();
   if (!s) { viewLogin("请先登录。"); return; }
+  box = (box === "drafts" || box === "new") ? box : "inbox";
   setTier(s === "提灯人" ? 3 : 2);
   renderChrome("» 短消息");
   var data = pmDataFor(s);
   if (idx !== undefined && idx !== null && idx !== "") {
-    var list = box === "drafts" ? data.drafts : data.inbox;
-    var pm = list[parseInt(idx, 10)];
-    if (!pm) { location.hash = "#/pm"; return; }
+    var list = pmListFor(data, box), requested = String(idx), listIndex = /^\d+$/.test(requested) ? parseInt(requested, 10) : -1;
+    if (box === "new" && listIndex < 0) {
+      var token = requested;
+      try { token = decodeURIComponent(token); } catch (e0) {}
+      for (var ni = 0; ni < list.length; ni++) if (String(list[ni].id) === token) { listIndex = ni; break; }
+    }
+    var pm = list[listIndex];
+    if (!pm) { location.hash = box === "new" ? "#/pm/new" : (box === "drafts" ? "#/pm/drafts" : "#/pm"); return; }
     if (pm.doc) markVisited(pm.id);
     markPmRead(pm.id);
     if (pm.id === "pm_youdeng" || pm.id === "evt_pm_rightlamp_0336") {
       try { localStorage.setItem("bbs_read_rightlamp", "1"); } catch (e) {}
     }
+    var detailBack = box === "new" ? "#/pm/new" : (box === "drafts" ? "#/pm/drafts" : "#/pm");
+    var detailSource = box === "drafts" ? "存于草稿箱" : (box === "new" ? "新投递 · 发件人：" : "发件人：") + esc(pm.from);
     document.getElementById("view").innerHTML =
       '<div class="thread-head-bar">' + esc(pm.title) + '</div>' +
-      '<div class="quote">' + (box === "drafts" ? "存于草稿箱" : "发件人：" + esc(pm.from)) + "　" + pm.time + '</div>' +
+      '<div class="quote">' + detailSource + "　" + esc(pm.time) + '</div>' +
       '<div class="floor postbit"><div class="p-side"><div class="p-avatar" style="background:' + avatarColor(pm.from) + '">' + esc(pm.from.charAt(0)) + '</div><div class="p-uid">' + esc(pm.from) + '</div></div>' +
       '<div class="p-main"><div class="p-cont">' + hotwords(pm.html) + '</div></div></div>' +
-      '<p><a href="#/pm">« 返回短消息列表</a></p>';
+      '<p><a href="' + detailBack + '">« 返回短消息列表</a></p>';
     return;
   }
-  var html = '<div class="pm-tabs"><b>' + esc(s) + ' 的短消息</b>　<a href="#/pm">收件箱 (' + data.inbox.length + ')</a> | <a href="#/pm/drafts">草稿箱 (' + data.drafts.length + ')</a></div>';
-  var show = (box === "drafts") ? data.drafts : data.inbox;
-  html += '<table class="bbs"><tr><th>标题</th><th class="c" style="width:120px;">' + (box === "drafts" ? "类型" : "发件人") + '</th><th style="width:170px;">时间</th></tr>';
-  if (!show.length) html += '<tr><td colspan="3" class="c" style="color:#999;">（空）</td></tr>';
-  for (var i = 0; i < show.length; i++) {
-    var pm2 = show[i];
-    var pmRead = pmWasRead(pm2.id), rowClasses = [];
-    if (i % 2) rowClasses.push("alt");
-    if (pm2.id === "pm_youdeng" && !pmRead) rowClasses.push("pm-critical-row");
-    var unreadLabel = pmRead ? "" : '<span class="pm-unread">' + (pm2.id === "pm_youdeng" ? "未读 · 投递早于本次登录　" : "未读　") + '</span>';
-    html += '<tr' + (rowClasses.length ? ' class="' + rowClasses.join(" ") + '"' : '') + '><td>' + unreadLabel + '<a href="#/pm/' + (box === "drafts" ? "drafts/" : "") + i + '">' + esc(pm2.title) + '</a></td>' +
-      '<td class="c">' + (box === "drafts" ? "草稿" : esc(pm2.from)) + '</td><td class="pm-time">' + pm2.time + '</td></tr>';
+  var html = '<div class="pm-tabs"><b>' + esc(s) + ' 的短消息</b>　<a href="#/pm">收件箱 (' + data.inbox.length + ')</a> | <a href="#/pm/new">新投递 (' + data.newDeliveries.length + ')</a> | <a href="#/pm/drafts">草稿箱 (' + data.drafts.length + ')</a></div>';
+  if (box === "new") {
+    html += pmSectionHtml(data.newDeliveries, "new", "新投递", "异常消息单独保存，不改动原收件箱顺序");
+  } else if (box === "drafts") {
+    html += pmSectionHtml(data.drafts, "drafts", "草稿箱", "未发送记录");
+  } else {
+    html += pmSectionHtml(data.newDeliveries, "new", "新投递", "异常消息单独保存，不改动原收件箱顺序");
+    html += pmSectionHtml(data.inbox, "inbox", "收件箱", "原始投递顺序");
   }
-  html += '</table>';
   document.getElementById("view").innerHTML = html;
 }
 
@@ -770,4 +829,14 @@ function route() {
 }
 window.addEventListener("hashchange", route);
 document.addEventListener("DOMContentLoaded", route);
+/* A delayed event message must update the unread marker and, when the reader
+   is already in the mailbox, repaint only that mailbox view. The original
+   thread/search route is left untouched so reading is not interrupted. */
+window.addEventListener("archivepm", function () {
+  setTimeout(function () {
+    renderUserbar();
+    var parts = location.hash.replace(/^#\/?/, "").split("/");
+    if (parts[0] === "pm" && session()) route();
+  }, 0);
+});
 })();

@@ -420,12 +420,26 @@
     var table = view.querySelector("table.bbs");
     if (table) table.parentNode.insertBefore(bar, table);
   }
+  function isMissingFloorQuery(query) {
+    var q = norm(query);
+    return q.indexOf("第37楼") !== -1 || q.indexOf("37楼") !== -1 || q.indexOf("缺失楼") !== -1;
+  }
+  function lockedSearchReason() {
+    var trail = investigationState();
+    if (!trail.knife) return "收件箱里还有一封旧信没有被见证。";
+    if (!trail.witness) return "第二个草稿保存位置仍未校验。";
+    if (!trail.moderator) return "删除记录还没有完成后台复核。";
+    if (!trail.room) return "相关地址记录仍缺一角。";
+    if (!trail.fifth) return "主帖的报数还没有读到第五声。";
+    return "相关记录尚未完成交叉读取。";
+  }
   function searchData(query) {
     var q = norm(query), list = allThreads(), results = [], i;
     if (!q) return results;
+    var floorQuery = isMissingFloorQuery(q), finalOpen = canSeeFinal();
     for (i = 0; i < list.length; i++) {
       var t = list[i];
-      if (t.id === "t_37" && !canSeeFinal()) continue;
+      if (t.id === "t_37" && !finalOpen && !floorQuery) continue;
       var body = "";
       var posts = t.posts || [];
       for (var p = 0; p < posts.length; p++) body += " " + htmlText(posts[p].html);
@@ -438,8 +452,14 @@
       /* The public index still routes this phrase to the old moderation
          notice. Only after all five evidence threads converge may the same
          query surface the missing record itself. */
-      if (t.id === "t_37" && canSeeFinal() && q === norm("第37楼")) score += 36;
-      if (score) results.push({ type: "thread", item: t, score: score, body: body });
+      if (t.id === "t_37" && finalOpen && q === norm("第37楼")) score += 36;
+      /* Keep the missing-floor candidate in the index as a title-only row.
+         Its body must not become a spoiler before the evidence converges. */
+      if (t.id === "t_37" && floorQuery && !finalOpen) score = Math.max(score, 32);
+      if (score) results.push({
+        type: "thread", item: t, score: score, body: body,
+        locked: floorQuery && !finalOpen && (!!t.hidden || t.id === "t_37")
+      });
     }
     var users = Object.assign({}, (window.BBS && BBS.users) || {}, (window.BBS_STORY && BBS_STORY.users) || {}, (window.BBS_FILLER && BBS_FILLER.users) || {}, (window.BBS_EXPANSION && BBS_EXPANSION.users) || {}, (window.BBS_EXTENDED && BBS_EXTENDED.users) || {});
     for (var name in users) {
@@ -459,8 +479,10 @@
   function renderSearch(query) {
     var view = document.getElementById("view");
     if (!view || view.getAttribute("data-search-query") === query) return;
-    var results = searchData(query), html = '<div class="search-head"><div><span class="gate-kicker">ARCHIVE INDEX</span><h2>检索存档</h2></div><span class="archive-clock">' + esc(query) + '</span></div>';
-    html += '<div class="search-meta">查询：<b>' + esc(query) + '</b>　找到 ' + results.length + ' 条记录。索引不保证完整。</div>';
+    var results = searchData(query), lockedCount = 0;
+    for (var c = 0; c < results.length; c++) if (results[c].locked) lockedCount++;
+    var html = '<div class="search-head"><div><span class="gate-kicker">ARCHIVE INDEX</span><h2>检索存档</h2></div><span class="archive-clock">' + esc(query) + '</span></div>';
+    html += '<div class="search-meta">查询：<b>' + esc(query) + '</b>　找到 ' + results.length + ' 条记录。索引不保证完整。' + (lockedCount ? '　其中 ' + lockedCount + ' 条仅返回标题。' : '') + '</div>';
     if (!results.length) {
       var n = docCount();
       html += '<div class="search-empty"><strong>没有匹配记录。</strong><p>' + (n > 10 ? "查询已经写入这份镜像，但返回为空。请换一个更接近原帖的词。" : "旧索引只收录正文里出现过的词。回到已读帖子里再找一次。") + '</p><p class="stamp">搜索不会告诉你哪些字被删过。</p></div>';
@@ -471,7 +493,9 @@
           html += '<article class="search-result-item user-result"><div class="result-kind">用户资料</div><a href="#/user/' + encodeURIComponent(r.name) + '">' + esc(r.name) + '</a><div class="snippet">' + esc(r.body) + '</div></article>';
         } else {
           var t = r.item, hidden = t.hidden ? '<span class="result-flag">隐藏记录</span>' : '';
-          html += '<article class="search-result-item"><div class="result-kind">' + (t.board === "zhanwu" ? "站务版" : "怪谈版") + ' ' + hidden + '</div><a href="#/thread/' + esc(t.id) + '">' + esc(t.title) + '</a><div class="snippet">' + snippet(r.body, query) + '</div><div class="result-meta">' + esc(t.author) + '　' + esc(t.time || "时间缺失") + '</div></article>';
+          var title = r.locked ? '<span class="search-locked-title" aria-label="正文锁定：' + esc(t.title) + '">' + esc(t.title) + '</span>' : '<a href="#/thread/' + esc(t.id) + '">' + esc(t.title) + '</a>';
+          var copy = r.locked ? '<div class="search-lock-reason"><b>正文暂不返回</b><span>' + esc(lockedSearchReason()) + '</span></div>' : '<div class="snippet">' + snippet(r.body, query) + '</div>';
+          html += '<article class="search-result-item' + (r.locked ? ' search-result-locked' : '') + '"><div class="result-kind">' + (t.board === "zhanwu" ? "站务版" : "怪谈版") + ' ' + hidden + (r.locked ? '<span class="result-flag">正文锁定</span>' : '') + '</div>' + title + copy + '<div class="result-meta">' + esc(t.author) + '　' + esc(t.time || "时间缺失") + '</div></article>';
         }
       }
     }
