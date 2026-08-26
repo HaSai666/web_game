@@ -125,7 +125,7 @@
       for (var i = 0; i < repeats; i++) pieces.push(source[2]);
       out.push([
         source[0], source[1], pieces.join(source[1] === "markup" ? "<br>" : "　"),
-        { duplicate: true, group: (offset % COPY_LINES.length) + 1, density: pass + 1 }
+        { duplicate: true, pending: true, group: (offset % COPY_LINES.length) + 1, density: pass + 1 }
       ]);
     }
     return out;
@@ -135,7 +135,7 @@
     var uid = row[0], dialect = row[1], body = interpolate(row[2]);
     var meta = row[3] || {};
     var glyph = dialect === "markup" ? "源" : (dialect === "mojibake" ? "码" : "空");
-    var duplicateClass = meta.duplicate ? ' is-duplicate copy-density-' + meta.density : '';
+    var duplicateClass = meta.duplicate ? ' is-duplicate copy-density-' + meta.density + (meta.pending ? ' is-pending-copy' : '') : '';
     var duplicateAttr = meta.duplicate ? ' data-copy-group="' + meta.group + '"' : '';
     var stamp = meta.duplicate ? '复制组：0' + meta.group + '　字节校验：与上一份一致　实体记录：0' : '本楼不计入当前主题回复数。';
     var time = meta.duplicate && index % 5 === 0 ? "2005-02-27 03:33" : "2005-02-27 03:44";
@@ -194,11 +194,52 @@
     section.className = "corruption-batch";
     section.setAttribute("aria-label", "缓存中恢复的异常回复");
     var rows = mainBatchRows();
-    var html = '<div class="corruption-batch-head"><b>页面缓存正在重复写入同一楼层</b><span>显示回复：37　实体记录：0</span></div>';
+    var html = '<div class="corruption-batch-head"><b>页面缓存正在重复写入同一楼层</b><span data-copy-counter>显示回复：14　实体记录：0</span></div>';
     for (var i = 0; i < rows.length; i++) html += corruptionFloor(rows[i], i, false);
     section.innerHTML = html;
     floor35.insertAdjacentElement("afterend", section);
     document.body.classList.add("corruption-has-batch");
+    setupCopyFlood(section);
+  }
+
+  function setupCopyFlood(section) {
+    var pending = section.querySelectorAll(".is-pending-copy");
+    if (!pending.length) return;
+    var counter = section.querySelector("[data-copy-counter]"), started = false, observer = null;
+    function revealAll() {
+      if (started) return;
+      started = true;
+      section.classList.add("is-copying");
+      if (reducedMotion()) {
+        for (var r = 0; r < pending.length; r++) pending[r].classList.remove("is-pending-copy");
+        if (counter) counter.textContent = "显示回复：37　实体记录：0";
+        section.classList.add("copying-complete");
+        return;
+      }
+      var index = 0;
+      function next() {
+        var node = pending[index];
+        if (!node) {
+          section.classList.add("copying-complete");
+          if (window.ArchiveAudio && window.ArchiveAudio.cue) window.ArchiveAudio.cue("fifth");
+          return;
+        }
+        node.classList.remove("is-pending-copy");
+        node.classList.add("is-arrived");
+        if (counter) counter.textContent = "显示回复：" + (MAIN_BATCH.length + index + 1) + "　实体记录：0";
+        if (index === 0 && window.ArchiveAudio && window.ArchiveAudio.cue) window.ArchiveAudio.cue("key");
+        index++;
+        setTimeout(next, index < 8 ? 115 : (index < 17 ? 82 : 58));
+      }
+      setTimeout(next, 280);
+    }
+    if (typeof IntersectionObserver === "undefined") { setTimeout(revealAll, 500); return; }
+    observer = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) if (entries[i].isIntersecting) {
+        observer.disconnect(); revealAll(); break;
+      }
+    }, { threshold: .08 });
+    observer.observe(section);
   }
 
   function injectTransferredBatch(summary) {
@@ -312,9 +353,16 @@
   function preserveSearch(summary) {
     if (summary.stage < 4 || !summary.evidence.server.length) return;
     var input = document.getElementById("search-input");
-    if (input && !input.value) {
-      input.value = lastSearch();
+    if (input && !input.value && input.getAttribute("data-restored-query") !== "true") {
       input.setAttribute("data-restored-query", "true");
+      input.setAttribute("placeholder", "输入新的检索词");
+      var wrap = input.closest ? input.closest(".searchform-wrap") : null;
+      if (wrap && !wrap.querySelector(".restored-search-trace")) {
+        var trace = document.createElement("span");
+        trace.className = "restored-search-trace";
+        trace.innerHTML = '上次检索残留：<b>' + esc(lastSearch()) + '</b>　<span>清除记录失败</span>';
+        wrap.appendChild(trace);
+      }
     }
   }
 

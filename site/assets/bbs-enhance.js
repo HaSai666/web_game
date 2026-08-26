@@ -406,7 +406,17 @@
     if (!view || view.querySelector(".pm-security")) return;
     var bar = document.createElement("div");
     bar.className = "pm-security";
-    bar.textContent = "站内信来自离线镜像。时间字段按原样保留。";
+    var current = "";
+    try { current = localStorage.getItem("bbs_session") || ""; } catch (e) {}
+    if (current === "唯物主义小刀" && !hasSeen("pm_youdeng")) {
+      bar.classList.add("pm-security-critical");
+      bar.innerHTML = '<b>收件箱索引不一致</b><span>有一封03:33的旧信在本次登录前已经显示“未读”。镜像无法确认是谁把它改回来的。</span>';
+    } else if (current === "提灯人" && !hasSeen("draft2")) {
+      bar.classList.add("pm-security-critical");
+      bar.innerHTML = '<b>草稿箱恢复不完整</b><span>第二个保存位置没有时间字段，正文长度仍在变化。</span>';
+    } else {
+      bar.textContent = "站内信来自离线镜像。时间字段按原样保留。";
+    }
     var table = view.querySelector("table.bbs");
     if (table) table.parentNode.insertBefore(bar, table);
   }

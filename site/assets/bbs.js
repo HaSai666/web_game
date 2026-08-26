@@ -126,6 +126,37 @@ function canSee37() {
   return true;
 }
 
+function missing37Record(attempt) {
+  var summary = window.ArchiveEvidenceState ? window.ArchiveEvidenceState.summary() : null;
+  var access = summary && summary.privateAccess ? summary.privateAccess : { knife: false, witness: false, moderator: false };
+  var evidence = summary && summary.evidence ? summary.evidence : { person: [], room: [], ritual: [], identity: [], server: [] };
+  var visitor = session() || "当前访客";
+  var record = { title: "指定主题不存在", text: "主题索引在第36楼后终止。服务器声称从未生成下一条记录。", stamp: "archive_row: 36　next_row: null　author_id: null" };
+
+  if (summary && summary.stage >= 1 && !access.knife) {
+    record = { title: "楼层恢复失败", text: "恢复任务找到一个收件人字段：唯物主义小刀。03:33的旧信仍处于“未见证”。", stamp: "mailbox_owner: 唯物主义小刀　witness: 0" };
+  } else if (summary && summary.stage >= 1 && !access.witness) {
+    record = { title: "作者身份无法校验", text: "一个在03:44注册的账号仍留着第二份未发送草稿。页面拒绝为它补全作者。", stamp: "draft_slot: 2　save_time: null　author_id: pending" };
+  } else if (summary && summary.stage >= 1 && !access.moderator) {
+    record = { title: "删除记录尚未复核", text: "回收站返回一条空作者记录，只有当值版主能看见它。前台暂不恢复第37楼。", stamp: "recycle_row: 37　deleted_by: null" };
+  } else if (summary && summary.stage >= 1 && !evidence.room.length) {
+    record = { title: "楼层没有对应地址", text: "正文引用了一间房，但镜像里没有被打开过的门牌或租住记录。", stamp: "room_ref: unresolved　key_tag: ?7" };
+  } else if (summary && summary.stage >= 1 && (!evidence.ritual.length || !(summary.anchors && summary.anchors.fifth_voice))) {
+    record = { title: "页面仍在等待一次报数", text: "主帖的读取位置停在第五声之前。搜索摘要不能替它完成这一行。", stamp: "voice_count: 4　page_cursor: waiting" };
+  } else if (summary && summary.stage >= 1 && !summary.finalReady) {
+    record = { title: "记录彼此无法对齐", text: "房间、账号和服务器时间已经重合，但仍有一份正文只留下了标题。", stamp: "archive_join: incomplete　candidate: " + visitor };
+  }
+
+  if (attempt >= 2) record.text += " 页面刚才尝试把“" + visitor + "”写进空白作者栏，校验没有通过。";
+  if (attempt >= 3) record.stamp = "reader_candidate: " + visitor + "　attempt: " + attempt + "　distance: 1";
+  return record;
+}
+function missing37Html(attempt) {
+  var record = missing37Record(attempt || 0);
+  return '<section class="missing-floor-feedback" role="status"><div class="missing-floor-head"><b>' + esc(record.title) + '</b><span>只读镜像 / 恢复日志</span></div>' +
+    '<p>' + esc(record.text) + '</p><code>' + esc(record.stamp) + '</code></section>';
+}
+
 function setEndingSignal(value) {
   try { localStorage.setItem("bbs_ending_signal", value); } catch (e) {}
 }
@@ -343,8 +374,7 @@ function viewThread(tid) {
     setTier();
     renderChrome("» <a href='#/board/guaitan'>怪谈版</a> » （不存在）");
     document.getElementById("view").innerHTML =
-      '<div class="thread-head-bar">指定主题不存在</div>' +
-      '<div class="quote">该主题可能已被删除、移动，或未被当前镜像收录。</div>' +
+      '<div class="thread-head-bar">指定主题不存在</div>' + missing37Html(0) +
       '<p class="stamp"><a href="#/board/guaitan">« 返回怪谈版</a></p>';
     return;
   }
@@ -412,6 +442,33 @@ function viewThread(tid) {
     btn.textContent = "下一楼（37）";
     btn.removeAttribute("onclick");
     btn.href = "#/thread/t_37";
+  } else if (btn) {
+    btn.removeAttribute("onclick");
+    btn.setAttribute("aria-describedby", "missing-floor-live");
+    btn.addEventListener("click", function (event) {
+      event.preventDefault();
+      var attempts = 0;
+      try {
+        attempts = parseInt(localStorage.getItem("bbs_missing37_attempts") || "0", 10) || 0;
+        attempts += 1;
+        localStorage.setItem("bbs_missing37_attempts", String(attempts));
+      } catch (e) { attempts = 1; }
+      var old = document.getElementById("missing-floor-live");
+      if (old) old.remove();
+      var box = document.createElement("div");
+      box.id = "missing-floor-live";
+      box.innerHTML = missing37Html(attempts);
+      var floor = btn.closest ? btn.closest(".floor.postbit") : null;
+      if (floor) floor.insertAdjacentElement("afterend", box);
+      else btn.parentNode.insertAdjacentElement("afterend", box);
+      document.body.classList.remove("haunt-floor-refused");
+      void document.body.offsetWidth;
+      document.body.classList.add("haunt-floor-refused");
+      var originalTitle = document.title;
+      document.title = "（1）第37楼正在恢复";
+      setTimeout(function () { document.title = originalTitle; document.body.classList.remove("haunt-floor-refused"); }, 1800);
+      if (window.ArchiveAudio && window.ArchiveAudio.cue) window.ArchiveAudio.cue(attempts >= 2 ? "fifth" : "key");
+    });
   }
 
   var replyButton = document.getElementById("reply-btn");
@@ -537,7 +594,11 @@ function viewPM(box, idx) {
   if (!show.length) html += '<tr><td colspan="3" class="c" style="color:#999;">（空）</td></tr>';
   for (var i = 0; i < show.length; i++) {
     var pm2 = show[i];
-    html += '<tr' + (i % 2 ? ' class="alt"' : '') + '><td>' + (pmWasRead(pm2.id) ? '' : '<span class="pm-unread">未读　</span>') + '<a href="#/pm/' + (box === "drafts" ? "drafts/" : "") + i + '">' + esc(pm2.title) + '</a></td>' +
+    var pmRead = pmWasRead(pm2.id), rowClasses = [];
+    if (i % 2) rowClasses.push("alt");
+    if (pm2.id === "pm_youdeng" && !pmRead) rowClasses.push("pm-critical-row");
+    var unreadLabel = pmRead ? "" : '<span class="pm-unread">' + (pm2.id === "pm_youdeng" ? "未读 · 投递早于本次登录　" : "未读　") + '</span>';
+    html += '<tr' + (rowClasses.length ? ' class="' + rowClasses.join(" ") + '"' : '') + '><td>' + unreadLabel + '<a href="#/pm/' + (box === "drafts" ? "drafts/" : "") + i + '">' + esc(pm2.title) + '</a></td>' +
       '<td class="c">' + (box === "drafts" ? "草稿" : esc(pm2.from)) + '</td><td class="pm-time">' + pm2.time + '</td></tr>';
   }
   html += '</table>';

@@ -269,15 +269,17 @@
   function scheduleIdle() {
     if (idleTimer) clearTimeout(idleTimer);
     if (tier() < 2) return;
+    var currentTier = tier();
+    var delay = currentTier >= 4 ? 18000 : (currentTier >= 3 ? 28000 : 46000);
     idleTimer = setTimeout(function () {
       var id = threadId() || routeParts()[0] || "index";
       if (!once("haunt_idle_" + id)) return;
       document.body.classList.add("haunt-looked-back");
       updateReflection();
-      showWhisper(branchCount() >= 3 ? "反射帧在你没有操作时更新了一次。" : "页面边缘刚才少了一把椅子。");
-      pulse("soft");
-      setTimeout(function () { document.body.classList.remove("haunt-looked-back"); }, 4600);
-    }, 480000);
+      showWhisper(currentTier >= 4 ? "你没有滚动，页面却替你读完了下一楼。" : (branchCount() >= 3 ? "反射帧在你没有操作时更新了一次。" : "页面边缘刚才少了一把椅子。"));
+      pulse(currentTier >= 4 ? "breathe" : "soft");
+      setTimeout(function () { document.body.classList.remove("haunt-looked-back"); }, currentTier >= 4 ? 7200 : 5200);
+    }, delay);
   }
 
   function refresh() {

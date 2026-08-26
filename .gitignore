@@ -1,5 +1,6 @@
 # Local browser QA artifacts
 .playwright-cli/
 output/playwright/
+output/*.png
 # Keep the high-resolution generation sources local; the web build uses the optimized JPGs.
 site/assets/img/*-v2.png
